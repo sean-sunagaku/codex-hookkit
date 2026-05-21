@@ -35,10 +35,17 @@ Release や publish を扱う場合は `docs/RELEASE.md` も読んでくださ�
 
 ```sh
 uv sync --dev
+uv run python tools/generate_pydantic_outputs.py
+uv run ruff format --check .
+uv run ruff check .
 uv run pytest -q
+rm -rf dist
 uv build
 uv run twine check dist/*
 ```
+
+`make check` runs the generated-model sync check, lint, tests, and package
+build in the same order expected by CI.
 
 Codex CLI hook smoke:
 

@@ -24,9 +24,7 @@ EVENT_NAMES = {
     "user-prompt-submit": "UserPromptSubmit",
 }
 
-CLASS_NAMES = {
-    name: f"{event}Output" for name, event in EVENT_NAMES.items()
-}
+CLASS_NAMES = {name: f"{event}Output" for name, event in EVENT_NAMES.items()}
 
 PY_RESERVED = {"continue": "continue_"}
 
@@ -101,12 +99,18 @@ def render_schema(schema_name: str, rendered_classes: set[str]) -> str:
         for object_ref in object_refs(definitions[hook_ref], definitions):
             object_class_name = strip_wire(object_ref)
             if object_class_name not in rendered_classes:
-                pieces.append(render_object_definition(definitions[object_ref], object_class_name, definitions))
+                pieces.append(
+                    render_object_definition(
+                        definitions[object_ref], object_class_name, definitions
+                    )
+                )
                 rendered_classes.add(object_class_name)
         pieces.append(render_object_definition(definitions[hook_ref], hook_class, definitions))
         rendered_classes.add(hook_class)
 
-    pieces.append(render_root_class(schema_name, schema, class_name, hook_ref, hook_class, definitions))
+    pieces.append(
+        render_root_class(schema_name, schema, class_name, hook_ref, hook_class, definitions)
+    )
     return "\n\n".join(pieces)
 
 
@@ -129,7 +133,10 @@ def render_object_definition(
     class_name: str,
     definitions: dict[str, Any],
 ) -> str:
-    lines = [f"class {class_name}(BaseModel):", '    model_config = ConfigDict(extra="forbid", populate_by_name=True)']
+    lines = [
+        f"class {class_name}(BaseModel):",
+        '    model_config = ConfigDict(extra="forbid", populate_by_name=True)',
+    ]
     required = set(definition.get("required", []))
     for prop, prop_schema in definition.get("properties", {}).items():
         lines.append(render_field(prop, prop_schema, definitions, required=prop in required))
@@ -146,12 +153,22 @@ def render_root_class(
     hook_class: str,
     definitions: dict[str, Any],
 ) -> str:
-    lines = [f"class {class_name}(StructuredOutput):", f'    schema: ClassVar[str] = "{schema_name}"']
+    lines = [
+        f"class {class_name}(StructuredOutput):",
+        f'    schema: ClassVar[str] = "{schema_name}"',
+    ]
     required = set(schema.get("required", []))
     for prop, prop_schema in schema.get("properties", {}).items():
         if prop == "hookSpecificOutput" and hook_ref:
             prop_schema = {"allOf": [{"$ref": f"#/definitions/{hook_class}"}], "default": None}
-        lines.append(render_field(prop, prop_schema, {**definitions, hook_class: {"type": "object"}}, required=prop in required))
+        lines.append(
+            render_field(
+                prop,
+                prop_schema,
+                {**definitions, hook_class: {"type": "object"}},
+                required=prop in required,
+            )
+        )
     lines.append("")
     lines.extend(render_convenience_methods(schema_name, class_name, hook_class))
     return "\n".join(lines)
@@ -187,7 +204,10 @@ def render_convenience_methods(schema_name: str, class_name: str, hook_class: st
             "        return cls(",
             "            hook_specific_output=PermissionRequestHookSpecificOutput(",
             '                hook_event_name="PermissionRequest",',
-            "                decision=PermissionRequestDecision(behavior=\"allow\", message=message),",
+            (
+                "                decision=PermissionRequestDecision("
+                'behavior="allow", message=message),'
+            ),
             "            )",
             "        )",
             "",
@@ -196,7 +216,10 @@ def render_convenience_methods(schema_name: str, class_name: str, hook_class: st
             "        return cls(",
             "            hook_specific_output=PermissionRequestHookSpecificOutput(",
             '                hook_event_name="PermissionRequest",',
-            "                decision=PermissionRequestDecision(behavior=\"deny\", message=message),",
+            (
+                "                decision=PermissionRequestDecision("
+                'behavior="deny", message=message),'
+            ),
             "            )",
             "        )",
         ]
@@ -204,7 +227,7 @@ def render_convenience_methods(schema_name: str, class_name: str, hook_class: st
         event = EVENT_NAMES[schema_name]
         kwargs = [f'hook_event_name="{event}"']
         if schema_name in {"session-start", "subagent-start", "user-prompt-submit"}:
-            signature = f"additional_context: str | None = None"
+            signature = "additional_context: str | None = None"
             kwargs.append("additional_context=additional_context")
         else:
             signature = ""
@@ -220,7 +243,9 @@ def render_convenience_methods(schema_name: str, class_name: str, hook_class: st
     ]
 
 
-def render_field(prop: str, prop_schema: dict[str, Any], definitions: dict[str, Any], *, required: bool) -> str:
+def render_field(
+    prop: str, prop_schema: dict[str, Any], definitions: dict[str, Any], *, required: bool
+) -> str:
     py_name = PY_RESERVED.get(prop, camel_to_snake(prop))
     typ = type_expr(prop_schema, definitions, required=required)
     default = "..." if required else default_expr(prop_schema)
@@ -298,7 +323,12 @@ def render_all() -> str:
             names.append(f"{event}HookSpecificOutput")
             if schema_name == "permission-request":
                 names.append("PermissionRequestDecision")
-        elif schema_name in {"post-tool-use", "session-start", "subagent-start", "user-prompt-submit"}:
+        elif schema_name in {
+            "post-tool-use",
+            "session-start",
+            "subagent-start",
+            "user-prompt-submit",
+        }:
             names.append(f"{event}HookSpecificOutput")
     joined = ",\n    ".join(repr(name) for name in names)
     return f"__all__ = [\n    {joined},\n]"

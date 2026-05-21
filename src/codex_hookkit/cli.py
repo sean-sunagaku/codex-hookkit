@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import Optional
 
 from .decisions import allow, deny, dump_json
 from .payload import HookPayload
@@ -49,7 +48,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="write the skeleton to this file instead of stdout",
     )
 
-    download = subparsers.add_parser("download-schemas", help="download upstream generated hook schemas")
+    download = subparsers.add_parser(
+        "download-schemas", help="download upstream generated hook schemas"
+    )
     download.add_argument("--commit", help="upstream openai/codex commit; defaults to HEAD")
     download.add_argument(
         "--dest",
@@ -60,7 +61,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
     if args.command == "schemas":
@@ -93,7 +94,9 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     if args.command == "guard":
         try:
-            payload = HookPayload.from_stdin(schema=args.schema, validate_schema=not args.no_validate)
+            payload = HookPayload.from_stdin(
+                schema=args.schema, validate_schema=not args.no_validate
+            )
         except Exception as exc:
             return deny.stderr_exit(f"Invalid Codex hook payload: {exc}")
 

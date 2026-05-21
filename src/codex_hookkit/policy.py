@@ -34,11 +34,13 @@ class SecretPolicy:
     blocked_command_patterns: tuple[re.Pattern[str], ...] = field(default_factory=tuple)
 
     @classmethod
-    def default(cls) -> "SecretPolicy":
+    def default(cls) -> SecretPolicy:
         return cls(
             blocked_command_patterns=(
                 re.compile(r"\b(printenv|env)\b.*\b(TOKEN|SECRET|PASSWORD|KEY)\b", re.IGNORECASE),
-                re.compile(r"\b(cat|less|more|tail|head|sed|awk|rg|grep)\b.*\.(env|pypirc|npmrc)\b"),
+                re.compile(
+                    r"\b(cat|less|more|tail|head|sed|awk|rg|grep)\b.*\.(env|pypirc|npmrc)\b"
+                ),
             )
         )
 

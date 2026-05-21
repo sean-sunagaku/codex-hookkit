@@ -6,7 +6,6 @@ from pathlib import Path
 
 from codex_hookkit import validate
 
-
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = ROOT / "examples"
 PYTHON_HOOKS = EXAMPLES / "python_hooks"

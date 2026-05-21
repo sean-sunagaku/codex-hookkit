@@ -193,9 +193,19 @@ See `docs/ARCHITECTURE.md` for the full design notes.
 
 ```sh
 uv sync --dev
+uv run python tools/generate_pydantic_outputs.py
+uv run ruff format .
+uv run ruff check .
 uv run pytest -q
+rm -rf dist
 uv build
 uv run twine check dist/*
+```
+
+Or run the same local gate that CI uses:
+
+```sh
+make check
 ```
 
 List vendored schemas:

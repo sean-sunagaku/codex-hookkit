@@ -18,7 +18,8 @@ building Codex hook guards without guessing the hook payload contract.
 src/codex_hookkit/
   schemas.py      # schema discovery, loading, and jsonschema validation
   payload.py      # HookPayload parsing from stdin, stream, or dict
-  decisions.py    # allow / deny decision helpers and hook JSON builders
+  outputs.py      # generated Pydantic classes for schema-valid hook outputs
+  decisions.py    # compatibility allow / deny helpers over generated outputs
   policy.py       # minimal SecretPolicy default guard
   upstream.py     # importable schema snapshot downloader
   scaffold.py     # hook skeleton generation
@@ -33,8 +34,10 @@ third_party/openai-codex-hook-schemas/
   UPSTREAM.md
 
 tools/update_codex_hook_schemas.py
+tools/generate_pydantic_outputs.py
 .codex/hooks.json
 tests/test_cli.py
+tests/test_outputs.py
 ```
 
 ## Library-First Data Flow
@@ -88,7 +91,11 @@ Stable concepts:
 - `HookPayload`: parsed hook payload plus convenience accessors.
 - `SecretPolicy`: small default policy for secret-file and token access.
 - `Decision`: allowed or denied result.
-- `allow` / `deny`: builders for both simple decisions and Codex JSON output.
+- `StructuredOutput`: base class for generated, schema-validated output models.
+- `PreToolUseOutput`, `PermissionRequestOutput`, and other generated output
+  classes: structured hook output builders.
+- `allow` / `deny`: compatibility builders for simple decisions and common
+  Codex JSON output.
 - `validate`: validate arbitrary input or output against vendored schemas.
 - `download_schema_snapshot`: fetch generated schemas from `openai/codex`.
 - `secret_guard_hook`: generate the minimal import-first hook skeleton.
@@ -117,6 +124,25 @@ Default behavior:
 With `--json-output`, denials and allows are emitted as validated
 `hookSpecificOutput` JSON and the process exits `0`.
 
+## Generated Output Models
+
+`src/codex_hookkit/outputs.py` is generated from the vendored Codex output
+schemas. It should not be edited by hand.
+
+Regenerate it with:
+
+```sh
+uv run python tools/generate_pydantic_outputs.py
+```
+
+The test suite includes an exact sync check so generated classes cannot drift
+from the generator. This keeps the architecture simple:
+
+- schema files define the contract
+- the generator turns that contract into Pydantic classes
+- `outputs.py` exposes structured, validated objects
+- `decisions.py` remains a thin backward-compatible wrapper
+
 ## Local Codex Hook Config
 
 The repository includes `.codex/hooks.json` for dogfooding:
@@ -135,7 +161,8 @@ Keep these boundaries in mind:
 
 - Schema validation belongs in `schemas.py`.
 - Payload normalization belongs in `payload.py`.
-- Codex output shaping belongs in `decisions.py`.
+- Generated Codex output models belong in `outputs.py`.
+- Compatibility decision helpers belong in `decisions.py`.
 - Security rules belong in `policy.py` or caller-owned policies.
 - Schema download belongs in `upstream.py`.
 - Skeleton text belongs in `scaffold.py`.

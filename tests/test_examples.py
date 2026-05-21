@@ -5,7 +5,6 @@ from pathlib import Path
 
 from codex_hookkit import validate
 
-
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
 
 
@@ -21,9 +20,15 @@ def test_pre_tool_use_examples_match_upstream_schema() -> None:
 
 
 def test_permission_request_examples_match_upstream_schema() -> None:
-    validate(load_example("permission_request_payload.json"), "permission-request", direction="input")
-    validate(load_example("permission_request_output.json"), "permission-request", direction="output")
-    validate(load_example("permission_request_allow.json"), "permission-request", direction="output")
+    validate(
+        load_example("permission_request_payload.json"), "permission-request", direction="input"
+    )
+    validate(
+        load_example("permission_request_output.json"), "permission-request", direction="output"
+    )
+    validate(
+        load_example("permission_request_allow.json"), "permission-request", direction="output"
+    )
     validate(load_example("permission_request_deny.json"), "permission-request", direction="output")
 
 

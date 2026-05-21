@@ -43,9 +43,14 @@ docs/RELEASE.md
 
 ```sh
 uv sync --dev
+uv run python tools/generate_pydantic_outputs.py
+uv run ruff format --check .
+uv run ruff check .
 uv run pytest -q
+rm -rf dist
 uv build
 uv run twine check dist/*
+make check
 uvx --refresh-package codex-hookkit --from codex-hookkit codex-hookkit schemas
 uv run codex-hookkit scaffold --output /tmp/secret_guard.py
 ```
@@ -104,6 +109,8 @@ When changing JSON output:
 - keep `src/codex_hookkit/outputs.py` generated from vendored output schemas
 - keep `decisions.py` as a thin compatibility layer over generated output models
 - add tests for `--json-output`
+- keep `tests/test_outputs.py` passing so the generator and generated file stay
+  in sync
 
 ## Security Rules
 

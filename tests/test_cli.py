@@ -5,7 +5,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 BASE_PAYLOAD = {
     "cwd": "/tmp/project",
     "hook_event_name": "PreToolUse",

@@ -5,10 +5,9 @@ from __future__ import annotations
 import json
 import sys
 from dataclasses import dataclass
-from typing import Any, Optional, TextIO
+from typing import Any, TextIO
 
 from .outputs import PermissionRequestOutput, PreToolUseOutput
-from .schemas import validate
 
 
 @dataclass(frozen=True)
@@ -31,11 +30,11 @@ class allow:
         return Decision(allowed=True, reason=reason)
 
     @staticmethod
-    def pre_tool_use_json(additional_context: Optional[str] = None) -> dict[str, Any]:
+    def pre_tool_use_json(additional_context: str | None = None) -> dict[str, Any]:
         return PreToolUseOutput.allow(additional_context).validated()
 
     @staticmethod
-    def permission_request_json(message: Optional[str] = None) -> dict[str, Any]:
+    def permission_request_json(message: str | None = None) -> dict[str, Any]:
         return PermissionRequestOutput.allow(message).validated()
 
 

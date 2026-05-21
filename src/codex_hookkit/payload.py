@@ -18,7 +18,9 @@ class HookPayload:
     schema: str
 
     @classmethod
-    def from_stdin(cls, schema: str = "pre-tool-use", *, validate_schema: bool = True) -> "HookPayload":
+    def from_stdin(
+        cls, schema: str = "pre-tool-use", *, validate_schema: bool = True
+    ) -> HookPayload:
         return cls.from_stream(sys.stdin, schema=schema, validate_schema=validate_schema)
 
     @classmethod
@@ -28,7 +30,7 @@ class HookPayload:
         schema: str = "pre-tool-use",
         *,
         validate_schema: bool = True,
-    ) -> "HookPayload":
+    ) -> HookPayload:
         try:
             data = json.load(stream)
         except json.JSONDecodeError as exc:
@@ -42,7 +44,7 @@ class HookPayload:
         schema: str = "pre-tool-use",
         *,
         validate_schema: bool = True,
-    ) -> "HookPayload":
+    ) -> HookPayload:
         if not isinstance(data, dict):
             raise TypeError("hook payload must be a JSON object")
         if validate_schema:
