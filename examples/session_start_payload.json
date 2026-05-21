@@ -1,0 +1,9 @@
+{
+  "cwd": "/path/to/project",
+  "hook_event_name": "SessionStart",
+  "model": "gpt-5",
+  "permission_mode": "default",
+  "session_id": "session-id",
+  "source": "startup",
+  "transcript_path": null
+}

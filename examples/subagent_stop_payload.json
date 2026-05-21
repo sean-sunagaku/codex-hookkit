@@ -1,0 +1,14 @@
+{
+  "agent_id": "agent-id",
+  "agent_transcript_path": null,
+  "agent_type": "default",
+  "cwd": "/path/to/project",
+  "hook_event_name": "SubagentStop",
+  "last_assistant_message": "Done.",
+  "model": "gpt-5",
+  "permission_mode": "default",
+  "session_id": "session-id",
+  "stop_hook_active": false,
+  "transcript_path": null,
+  "turn_id": "turn-id"
+}

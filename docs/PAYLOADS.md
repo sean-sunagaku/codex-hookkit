@@ -37,8 +37,16 @@ source of truth. The schema is.
 Minimal validated examples live in `examples/`:
 
 ```text
-examples/pre_tool_use_payload.json
 examples/permission_request_payload.json
+examples/post_compact_payload.json
+examples/post_tool_use_payload.json
+examples/pre_compact_payload.json
+examples/pre_tool_use_payload.json
+examples/session_start_payload.json
+examples/stop_payload.json
+examples/subagent_start_payload.json
+examples/subagent_stop_payload.json
+examples/user_prompt_submit_payload.json
 ```
 
 ## Common Input Fields
@@ -123,10 +131,20 @@ The builders validate their result before returning it.
 Minimal validated output examples live in `examples/`:
 
 ```text
-examples/pre_tool_use_allow.json
-examples/pre_tool_use_deny.json
 examples/permission_request_allow.json
 examples/permission_request_deny.json
+examples/permission_request_output.json
+examples/post_compact_output.json
+examples/post_tool_use_output.json
+examples/pre_compact_output.json
+examples/pre_tool_use_allow.json
+examples/pre_tool_use_deny.json
+examples/pre_tool_use_output.json
+examples/session_start_output.json
+examples/stop_output.json
+examples/subagent_start_output.json
+examples/subagent_stop_output.json
+examples/user_prompt_submit_output.json
 ```
 
 ## What Is Fixed

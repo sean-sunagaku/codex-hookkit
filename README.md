@@ -67,12 +67,20 @@ codex-hookkit scaffold --output hooks/secret_guard.py
 The repository also includes validated minimal examples:
 
 ```text
-examples/pre_tool_use_payload.json
-examples/pre_tool_use_allow.json
-examples/pre_tool_use_deny.json
 examples/permission_request_payload.json
 examples/permission_request_allow.json
 examples/permission_request_deny.json
+examples/post_compact_payload.json
+examples/post_tool_use_payload.json
+examples/pre_compact_payload.json
+examples/pre_tool_use_payload.json
+examples/pre_tool_use_allow.json
+examples/pre_tool_use_deny.json
+examples/session_start_payload.json
+examples/stop_payload.json
+examples/subagent_start_payload.json
+examples/subagent_stop_payload.json
+examples/user_prompt_submit_payload.json
 examples/minimal_secret_guard.py
 ```
 

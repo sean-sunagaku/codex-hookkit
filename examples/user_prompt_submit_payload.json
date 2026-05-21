@@ -1,0 +1,10 @@
+{
+  "cwd": "/path/to/project",
+  "hook_event_name": "UserPromptSubmit",
+  "model": "gpt-5",
+  "permission_mode": "default",
+  "prompt": "Run tests.",
+  "session_id": "session-id",
+  "transcript_path": null,
+  "turn_id": "turn-id"
+}

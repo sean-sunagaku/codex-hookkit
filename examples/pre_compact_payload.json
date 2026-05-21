@@ -1,0 +1,9 @@
+{
+  "cwd": "/path/to/project",
+  "hook_event_name": "PreCompact",
+  "model": "gpt-5",
+  "session_id": "session-id",
+  "transcript_path": null,
+  "trigger": "manual",
+  "turn_id": "turn-id"
+}
