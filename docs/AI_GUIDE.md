@@ -90,6 +90,14 @@ When changing policy:
 - add focused CLI tests
 - document the rule in `README.md` or `docs/ARCHITECTURE.md`
 
+When changing Codex review hooks:
+
+- edit `review.py` for marker, changed-file, or nested Codex behavior
+- keep `PostToolUse` cheap; it should mark pending review, not run review
+- keep nested review protected by `CODEX_HOOKKIT_REVIEW_ACTIVE`
+- add tests in `tests/test_review.py`
+- update `.codex/hooks.json` and `examples/codex_review_hooks.json` together
+
 When changing scaffolding:
 
 - edit `scaffold.py`

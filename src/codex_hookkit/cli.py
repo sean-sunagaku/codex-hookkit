@@ -9,7 +9,8 @@ from pathlib import Path
 from .decisions import allow, deny, dump_json
 from .payload import HookPayload
 from .policy import SecretPolicy
-from .scaffold import secret_guard_hook
+from .review import request_review, run_review
+from .scaffold import codex_review_hooks, secret_guard_hook
 from .schemas import available_schemas
 from .upstream import DEFAULT_DEST, download_schema_snapshot
 
@@ -39,7 +40,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="schema direction to display in the file-style names",
     )
 
-    scaffold = subparsers.add_parser("scaffold", help="write a minimal import-first hook script")
+    scaffold = subparsers.add_parser("scaffold", help="write a minimal hook skeleton")
+    scaffold.add_argument(
+        "--kind",
+        choices=("secret-guard", "codex-review-hooks"),
+        default="secret-guard",
+        help="skeleton kind to write",
+    )
     scaffold.add_argument("--schema", default="pre-tool-use", choices=available_schemas())
     scaffold.add_argument(
         "--output",
@@ -58,6 +65,19 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_DEST,
         help="destination directory for the schema snapshot",
     )
+
+    request = subparsers.add_parser(
+        "request-review", help="mark that changed code should receive a Stop-hook Codex review"
+    )
+    request.add_argument("--state-dir", default=".codex-hookkit")
+    request.add_argument("--no-validate", action="store_true")
+
+    review = subparsers.add_parser("run-review", help="run a pending Stop-hook Codex review")
+    review.add_argument("--state-dir", default=".codex-hookkit")
+    review.add_argument("--codex-bin", default="codex")
+    review.add_argument("--timeout", type=int, default=240)
+    review.add_argument("--dry-run", action="store_true", help="print the review prompt only")
+    review.add_argument("--no-validate", action="store_true")
     return parser
 
 
@@ -76,7 +96,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "scaffold":
-        content = secret_guard_hook(schema=args.schema)
+        if args.kind == "codex-review-hooks":
+            content = codex_review_hooks()
+        else:
+            content = secret_guard_hook(schema=args.schema)
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(content, encoding="utf-8")
@@ -91,6 +114,29 @@ def main(argv: list[str] | None = None) -> int:
             f"{snapshot.repo}@{snapshot.commit} to {snapshot.destination}"
         )
         return 0
+
+    if args.command == "request-review":
+        try:
+            payload = HookPayload.from_stdin(
+                schema="post-tool-use", validate_schema=not args.no_validate
+            )
+        except Exception as exc:
+            return deny.stderr_exit(f"Invalid Codex hook payload: {exc}")
+        request_review(payload, state_dir=args.state_dir)
+        return 0
+
+    if args.command == "run-review":
+        try:
+            payload = HookPayload.from_stdin(schema="stop", validate_schema=not args.no_validate)
+        except Exception as exc:
+            return deny.stderr_exit(f"Invalid Codex hook payload: {exc}")
+        return run_review(
+            payload,
+            state_dir=args.state_dir,
+            codex_bin=args.codex_bin,
+            dry_run=args.dry_run,
+            timeout=args.timeout,
+        )
 
     if args.command == "guard":
         try:

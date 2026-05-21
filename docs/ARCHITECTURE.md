@@ -21,6 +21,7 @@ src/codex_hookkit/
   outputs.py      # generated Pydantic classes for schema-valid hook outputs
   decisions.py    # compatibility allow / deny helpers over generated outputs
   policy.py       # minimal SecretPolicy default guard
+  review.py       # changed-code marker and Stop-hook Codex review runner
   upstream.py     # importable schema snapshot downloader
   scaffold.py     # hook skeleton generation
   cli.py          # sample runner and project setup helpers
@@ -38,6 +39,7 @@ tools/generate_pydantic_outputs.py
 .codex/hooks.json
 tests/test_cli.py
 tests/test_outputs.py
+tests/test_review.py
 ```
 
 ## Library-First Data Flow
@@ -99,6 +101,8 @@ Stable concepts:
 - `validate`: validate arbitrary input or output against vendored schemas.
 - `download_schema_snapshot`: fetch generated schemas from `openai/codex`.
 - `secret_guard_hook`: generate the minimal import-first hook skeleton.
+- `request_review` / `run_review`: mark changed code in `PostToolUse`, then run
+  one nested Codex review in `Stop`.
 
 The current default policy is conservative but not complete. It blocks common
 direct reads of `.env`, `.pypirc`, `.npmrc`, `.netrc`, `.ssh`, private key file
@@ -149,9 +153,17 @@ The repository includes `.codex/hooks.json` for dogfooding:
 
 - `PreToolUse` runs `codex-hookkit guard --schema pre-tool-use`
 - `PermissionRequest` runs `codex-hookkit guard --schema permission-request`
+- `PostToolUse` runs `codex-hookkit request-review`
+- `Stop` runs `codex-hookkit run-review`
 
 The command uses `uv run python -m codex_hookkit.cli` so local changes are
 tested before an installed wheel.
+
+The review hooks are deliberately split into two phases. `PostToolUse` only
+writes a small marker under `.codex-hookkit/` when git reports changed code
+files. `Stop` consumes that marker and launches `codex exec` once. Nested review
+runs set `CODEX_HOOKKIT_REVIEW_ACTIVE=1`, and hook helpers no-op when that
+variable is present, preventing recursive reviews.
 
 ## Boundaries
 
@@ -164,6 +176,7 @@ Keep these boundaries in mind:
 - Generated Codex output models belong in `outputs.py`.
 - Compatibility decision helpers belong in `decisions.py`.
 - Security rules belong in `policy.py` or caller-owned policies.
+- Changed-code review orchestration belongs in `review.py`.
 - Schema download belongs in `upstream.py`.
 - Skeleton text belongs in `scaffold.py`.
 - CLI argument parsing and sample runner behavior belong in `cli.py`.

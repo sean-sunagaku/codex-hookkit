@@ -67,6 +67,21 @@ def test_scaffold_outputs_import_first_hook() -> None:
     assert "HookPayload.from_stdin(schema='pre-tool-use')" in result.stdout
 
 
+def test_scaffold_outputs_codex_review_hooks() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "codex_hookkit.cli", "scaffold", "--kind", "codex-review-hooks"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0
+    output = json.loads(result.stdout)
+    assert "PostToolUse" in output["hooks"]
+    assert "Stop" in output["hooks"]
+    assert "request-review" in result.stdout
+    assert "run-review" in result.stdout
+
+
 def test_scaffold_writes_output_file(tmp_path: Path) -> None:
     output = tmp_path / "hooks" / "secret_guard.py"
     result = subprocess.run(

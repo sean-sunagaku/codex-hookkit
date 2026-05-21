@@ -17,6 +17,7 @@ snapshot updates.
 - Pydantic structured output models generated from Codex output schemas
 - a minimal sample guard runner CLI
 - a hook skeleton generator
+- a two-step Codex review hook for changed code
 - an importable schema snapshot downloader
 
 ## Project Names
@@ -65,6 +66,12 @@ Generate that skeleton with:
 codex-hookkit scaffold --output hooks/secret_guard.py
 ```
 
+Generate a Codex review hook config with:
+
+```sh
+codex-hookkit scaffold --kind codex-review-hooks --output hooks.json
+```
+
 The repository also includes validated minimal examples:
 
 ```text
@@ -85,6 +92,7 @@ examples/user_prompt_submit_payload.json
 examples/minimal_secret_guard.py
 examples/python_hooks/exit_status/*.py
 examples/python_hooks/structured_output/*.py
+examples/codex_review_hooks.json
 ```
 
 The structured-output examples use generated Pydantic classes such as
@@ -165,6 +173,56 @@ structured output.
 }
 ```
 
+## Codex Review Hook
+
+`codex-hookkit` also includes a small review hook flow for running Codex after
+code changes:
+
+- `request-review`: a `PostToolUse` hook that marks a pending review when the
+  repository has changed code files
+- `run-review`: a `Stop` hook that consumes the marker and runs one nested
+  `codex exec` review
+
+The nested review inherits `CODEX_HOOKKIT_REVIEW_ACTIVE=1`, so hook commands
+skip themselves during the review and avoid recursive Codex runs.
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run python -m codex_hookkit.cli request-review",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run python -m codex_hookkit.cli run-review",
+            "timeout": 300
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Use `--dry-run` to inspect the review prompt without launching Codex:
+
+```sh
+uv run python -m codex_hookkit.cli run-review --dry-run
+```
+
 ## Architecture
 
 The runtime flow is:
@@ -183,6 +241,7 @@ The key modules are:
 - `payload.py`: parse hook payloads and extract command text
 - `decisions.py`: build allow / deny decisions and structured outputs
 - `policy.py`: default secret-file and token-access guard
+- `review.py`: two-step changed-code Codex review hook
 - `upstream.py`: download pinned upstream schema snapshots
 - `scaffold.py`: generate small hook skeletons
 - `cli.py`: sample runner and project setup helpers

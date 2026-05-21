@@ -28,6 +28,8 @@ Release や publish を扱う場合は `docs/RELEASE.md` も読んでくださ�
 - runtime hook evaluation に不要な network access を入れない。
 - default policy は汎用的な secret guard に留め、プロダクト固有ルールを混ぜない。
 - core は import-first に保ち、CLI は sample runner / scaffold / schema helper に留める。
+- Codex review hook は `PostToolUse` で marker を置き、`Stop` で 1 回だけ実行する。
+- nested review は `CODEX_HOOKKIT_REVIEW_ACTIVE=1` で再帰実行を防ぐ。
 - `exit 2 + stderr` による deny 動作を壊さない。
 - JSON output helper は vendored output schema で validation する。
 
