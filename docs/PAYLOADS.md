@@ -49,6 +49,17 @@ examples/subagent_stop_payload.json
 examples/user_prompt_submit_payload.json
 ```
 
+Minimal Python hook files live in:
+
+```text
+examples/python_hooks/exit_status/*.py
+examples/python_hooks/structured_output/*.py
+```
+
+Use `exit_status` when a hook only needs `exit 0` or `exit 2 + stderr`.
+Use `structured_output` when a hook should write a schema-valid JSON response
+to stdout.
+
 ## Common Input Fields
 
 Current `PreToolUse`-style payloads commonly include:

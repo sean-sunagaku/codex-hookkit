@@ -1,6 +1,6 @@
 """Small helpers for building Codex hook guards."""
 
-from .decisions import Decision, allow, deny
+from .decisions import Decision, allow, deny, dump_json
 from .payload import HookPayload
 from .policy import SecretPolicy
 from .scaffold import secret_guard_hook
@@ -19,6 +19,7 @@ __all__ = [
     "allow",
     "available_schemas",
     "deny",
+    "dump_json",
     "download_schema_snapshot",
     "load_schema",
     "schema_path",

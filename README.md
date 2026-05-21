@@ -82,6 +82,8 @@ examples/subagent_start_payload.json
 examples/subagent_stop_payload.json
 examples/user_prompt_submit_payload.json
 examples/minimal_secret_guard.py
+examples/python_hooks/exit_status/*.py
+examples/python_hooks/structured_output/*.py
 ```
 
 ## CLI Helpers
