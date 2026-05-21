@@ -3,14 +3,12 @@
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, dump_json, validate
+from codex_hookkit import HookPayload, PreCompactOutput
 
 
 def main() -> int:
     HookPayload.from_stdin(schema="pre-compact")
-    output = {"continue": True}
-    validate(output, "pre-compact", direction="output")
-    dump_json(output)
+    PreCompactOutput.minimal().write()
     return 0
 
 

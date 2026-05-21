@@ -60,6 +60,21 @@ Use `exit_status` when a hook only needs `exit 0` or `exit 2 + stderr`.
 Use `structured_output` when a hook should write a schema-valid JSON response
 to stdout.
 
+The structured-output examples use Pydantic models generated from the vendored
+Codex output schemas:
+
+```python
+from codex_hookkit import PreToolUseOutput
+
+PreToolUseOutput.allow().write()
+```
+
+Regenerate them with:
+
+```sh
+uv run python tools/generate_pydantic_outputs.py
+```
+
 ## Common Input Fields
 
 Current `PreToolUse`-style payloads commonly include:

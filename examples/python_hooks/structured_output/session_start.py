@@ -3,14 +3,12 @@
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, dump_json, validate
+from codex_hookkit import HookPayload, SessionStartOutput
 
 
 def main() -> int:
     HookPayload.from_stdin(schema="session-start")
-    output = {"hookSpecificOutput": {"hookEventName": "SessionStart"}}
-    validate(output, "session-start", direction="output")
-    dump_json(output)
+    SessionStartOutput.minimal().write()
     return 0
 
 

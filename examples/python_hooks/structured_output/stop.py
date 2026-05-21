@@ -3,14 +3,12 @@
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, dump_json, validate
+from codex_hookkit import HookPayload, StopOutput
 
 
 def main() -> int:
     HookPayload.from_stdin(schema="stop")
-    output = {"continue": True}
-    validate(output, "stop", direction="output")
-    dump_json(output)
+    StopOutput.minimal().write()
     return 0
 
 

@@ -7,12 +7,13 @@ name = "codex-hookkit"
 version = "0.0.3"
 description = "Small helpers for building Codex hook guards against upstream hook schemas."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
   { name = "codex-hookkit maintainers" },
 ]
 dependencies = [
   "jsonschema>=4.0",
+  "pydantic>=2.0",
 ]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",

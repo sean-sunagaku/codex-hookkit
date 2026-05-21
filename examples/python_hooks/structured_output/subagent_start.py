@@ -3,14 +3,12 @@
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, dump_json, validate
+from codex_hookkit import HookPayload, SubagentStartOutput
 
 
 def main() -> int:
     HookPayload.from_stdin(schema="subagent-start")
-    output = {"hookSpecificOutput": {"hookEventName": "SubagentStart"}}
-    validate(output, "subagent-start", direction="output")
-    dump_json(output)
+    SubagentStartOutput.minimal().write()
     return 0
 
 

@@ -1,6 +1,26 @@
 """Small helpers for building Codex hook guards."""
 
 from .decisions import Decision, allow, deny, dump_json
+from .outputs import (
+    PermissionRequestDecision,
+    PermissionRequestHookSpecificOutput,
+    PermissionRequestOutput,
+    PostCompactOutput,
+    PostToolUseHookSpecificOutput,
+    PostToolUseOutput,
+    PreCompactOutput,
+    PreToolUseHookSpecificOutput,
+    PreToolUseOutput,
+    SessionStartHookSpecificOutput,
+    SessionStartOutput,
+    StopOutput,
+    StructuredOutput,
+    SubagentStartHookSpecificOutput,
+    SubagentStartOutput,
+    SubagentStopOutput,
+    UserPromptSubmitHookSpecificOutput,
+    UserPromptSubmitOutput,
+)
 from .payload import HookPayload
 from .policy import SecretPolicy
 from .scaffold import secret_guard_hook
@@ -12,9 +32,27 @@ __version__ = "0.0.3"
 __all__ = [
     "Decision",
     "HookPayload",
+    "PermissionRequestDecision",
+    "PermissionRequestHookSpecificOutput",
+    "PermissionRequestOutput",
+    "PostCompactOutput",
+    "PostToolUseHookSpecificOutput",
+    "PostToolUseOutput",
+    "PreCompactOutput",
+    "PreToolUseHookSpecificOutput",
+    "PreToolUseOutput",
     "SchemaName",
     "SecretPolicy",
     "SchemaSnapshot",
+    "SessionStartHookSpecificOutput",
+    "SessionStartOutput",
+    "StopOutput",
+    "StructuredOutput",
+    "SubagentStartHookSpecificOutput",
+    "SubagentStartOutput",
+    "SubagentStopOutput",
+    "UserPromptSubmitHookSpecificOutput",
+    "UserPromptSubmitOutput",
     "__version__",
     "allow",
     "available_schemas",

@@ -99,8 +99,10 @@ When changing upstream downloads:
 
 When changing JSON output:
 
-- edit `decisions.py`
-- validate against output schemas
+- edit the generator in `tools/generate_pydantic_outputs.py`
+- run `uv run python tools/generate_pydantic_outputs.py`
+- keep `src/codex_hookkit/outputs.py` generated from vendored output schemas
+- keep `decisions.py` as a thin compatibility layer over generated output models
 - add tests for `--json-output`
 
 ## Security Rules

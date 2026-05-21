@@ -14,6 +14,7 @@ snapshot updates.
 - stdin parsing for Codex hook payloads
 - JSON-schema validation helpers
 - allow / deny output builders
+- Pydantic structured output models generated from Codex output schemas
 - a minimal sample guard runner CLI
 - a hook skeleton generator
 - an importable schema snapshot downloader
@@ -84,6 +85,14 @@ examples/user_prompt_submit_payload.json
 examples/minimal_secret_guard.py
 examples/python_hooks/exit_status/*.py
 examples/python_hooks/structured_output/*.py
+```
+
+The structured-output examples use generated Pydantic classes such as
+`PreToolUseOutput`, `PermissionRequestOutput`, and `SessionStartOutput`.
+Regenerate those classes from the vendored Codex output schemas with:
+
+```sh
+uv run python tools/generate_pydantic_outputs.py
 ```
 
 ## CLI Helpers

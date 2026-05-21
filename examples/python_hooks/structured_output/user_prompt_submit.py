@@ -3,14 +3,12 @@
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, dump_json, validate
+from codex_hookkit import HookPayload, UserPromptSubmitOutput
 
 
 def main() -> int:
     HookPayload.from_stdin(schema="user-prompt-submit")
-    output = {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit"}}
-    validate(output, "user-prompt-submit", direction="output")
-    dump_json(output)
+    UserPromptSubmitOutput.minimal().write()
     return 0
 
 

@@ -3,14 +3,12 @@
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, dump_json, validate
+from codex_hookkit import HookPayload, PostToolUseOutput
 
 
 def main() -> int:
     HookPayload.from_stdin(schema="post-tool-use")
-    output = {"hookSpecificOutput": {"hookEventName": "PostToolUse"}}
-    validate(output, "post-tool-use", direction="output")
-    dump_json(output)
+    PostToolUseOutput.minimal().write()
     return 0
 
 

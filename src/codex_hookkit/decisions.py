@@ -7,6 +7,7 @@ import sys
 from dataclasses import dataclass
 from typing import Any, Optional, TextIO
 
+from .outputs import PermissionRequestOutput, PreToolUseOutput
 from .schemas import validate
 
 
@@ -31,30 +32,11 @@ class allow:
 
     @staticmethod
     def pre_tool_use_json(additional_context: Optional[str] = None) -> dict[str, Any]:
-        output: dict[str, Any] = {
-            "hookSpecificOutput": {
-                "hookEventName": "PreToolUse",
-                "permissionDecision": "allow",
-            }
-        }
-        if additional_context:
-            output["hookSpecificOutput"]["additionalContext"] = additional_context
-        validate(output, "pre-tool-use", direction="output")
-        return output
+        return PreToolUseOutput.allow(additional_context).validated()
 
     @staticmethod
     def permission_request_json(message: Optional[str] = None) -> dict[str, Any]:
-        decision: dict[str, Any] = {"behavior": "allow"}
-        if message:
-            decision["message"] = message
-        output = {
-            "hookSpecificOutput": {
-                "hookEventName": "PermissionRequest",
-                "decision": decision,
-            }
-        }
-        validate(output, "permission-request", direction="output")
-        return output
+        return PermissionRequestOutput.allow(message).validated()
 
 
 class deny:
@@ -71,29 +53,11 @@ class deny:
 
     @staticmethod
     def pre_tool_use_json(reason: str) -> dict[str, Any]:
-        output = {
-            "hookSpecificOutput": {
-                "hookEventName": "PreToolUse",
-                "permissionDecision": "deny",
-                "permissionDecisionReason": reason,
-            }
-        }
-        validate(output, "pre-tool-use", direction="output")
-        return output
+        return PreToolUseOutput.deny(reason).validated()
 
     @staticmethod
     def permission_request_json(reason: str) -> dict[str, Any]:
-        output = {
-            "hookSpecificOutput": {
-                "hookEventName": "PermissionRequest",
-                "decision": {
-                    "behavior": "deny",
-                    "message": reason,
-                },
-            }
-        }
-        validate(output, "permission-request", direction="output")
-        return output
+        return PermissionRequestOutput.deny(reason).validated()
 
 
 def dump_json(output: dict[str, Any], stream: TextIO = sys.stdout) -> None:
