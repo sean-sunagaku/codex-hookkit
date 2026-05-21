@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "codex-hookkit"
+version = "0.0.2"
+description = "Small helpers for building Codex hook guards against upstream hook schemas."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+  { name = "codex-hookkit maintainers" },
+]
+dependencies = [
+  "jsonschema>=4.0",
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Software Development",
+]
+
+[project.scripts]
+codex-hookkit = "codex_hookkit.cli:main"
+
+[project.urls]
+Repository = "https://github.com/sean-sunagaku/codex-hookkit"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/codex_hookkit"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"third_party/openai-codex-hook-schemas" = "codex_hookkit/vendor/openai-codex-hook-schemas"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/LICENSE",
+  "/README.md",
+  "/pyproject.toml",
+  "/src",
+  "/tests",
+  "/third_party/openai-codex-hook-schemas",
+  "/tools",
+]
+
+[dependency-groups]
+dev = [
+  "build>=1.4.4",
+  "pytest>=8.0",
+  "twine>=6.2",
+]
