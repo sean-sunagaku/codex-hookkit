@@ -29,6 +29,7 @@ codex-hookkit = "codex_hookkit.cli:main"
 
 [project.urls]
 Repository = "https://github.com/sean-sunagaku/codex-hookkit"
+Documentation = "https://github.com/sean-sunagaku/codex-hookkit/tree/main/docs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/codex_hookkit"]
@@ -38,8 +39,10 @@ packages = ["src/codex_hookkit"]
 
 [tool.hatch.build.targets.sdist]
 include = [
+  "/AGENTS.md",
   "/LICENSE",
   "/README.md",
+  "/docs",
   "/pyproject.toml",
   "/src",
   "/tests",

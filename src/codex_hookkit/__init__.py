@@ -5,7 +5,7 @@ from .payload import HookPayload
 from .policy import SecretPolicy
 from .schemas import SchemaName, available_schemas, load_schema, schema_path, validate
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 __all__ = [
     "Decision",
