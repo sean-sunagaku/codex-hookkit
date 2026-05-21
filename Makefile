@@ -1,8 +1,8 @@
-.PHONY: build check check-generated fmt lint test
+.PHONY: build check check-generated ci fmt lint test
 
 fmt:
-	uv run ruff format .
 	uv run ruff check --fix .
+	uv run ruff format .
 
 lint:
 	uv run ruff format --check .
@@ -21,3 +21,5 @@ build:
 	uv run twine check dist/*
 
 check: check-generated lint test build
+
+ci: check

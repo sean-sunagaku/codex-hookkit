@@ -33,22 +33,5 @@ jobs:
       - name: Install dependencies
         run: uv sync --dev
 
-      - name: Verify generated output models
-        run: |
-          uv run python tools/generate_pydantic_outputs.py
-          git diff --exit-code -- src/codex_hookkit/outputs.py
-
-      - name: Check formatting
-        run: uv run ruff format --check .
-
-      - name: Lint
-        run: uv run ruff check .
-
-      - name: Test
-        run: uv run pytest -q
-
-      - name: Build package
-        run: |
-          rm -rf dist
-          uv build
-          uv run twine check dist/*
+      - name: Check
+        run: make ci
