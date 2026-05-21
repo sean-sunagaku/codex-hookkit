@@ -64,6 +64,18 @@ Generate that skeleton with:
 codex-hookkit scaffold --output hooks/secret_guard.py
 ```
 
+The repository also includes validated minimal examples:
+
+```text
+examples/pre_tool_use_payload.json
+examples/pre_tool_use_allow.json
+examples/pre_tool_use_deny.json
+examples/permission_request_payload.json
+examples/permission_request_allow.json
+examples/permission_request_deny.json
+examples/minimal_secret_guard.py
+```
+
 ## CLI Helpers
 
 `codex-hookkit guard` is a minimal sample / generic guard runner. It reads one

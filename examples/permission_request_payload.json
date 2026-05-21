@@ -1,0 +1,13 @@
+{
+  "cwd": "/path/to/project",
+  "hook_event_name": "PermissionRequest",
+  "model": "gpt-5",
+  "permission_mode": "default",
+  "session_id": "session-id",
+  "tool_input": {
+    "cmd": "cat .env"
+  },
+  "tool_name": "shell",
+  "transcript_path": null,
+  "turn_id": "turn-id"
+}

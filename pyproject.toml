@@ -43,6 +43,7 @@ include = [
   "/LICENSE",
   "/README.md",
   "/docs",
+  "/examples",
   "/pyproject.toml",
   "/src",
   "/tests",

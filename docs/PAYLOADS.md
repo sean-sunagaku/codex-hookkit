@@ -34,6 +34,13 @@ post-tool-use.command.input.schema.json
 `codex-hookkit` exposes convenience accessors, but those accessors are not the
 source of truth. The schema is.
 
+Minimal validated examples live in `examples/`:
+
+```text
+examples/pre_tool_use_payload.json
+examples/permission_request_payload.json
+```
+
 ## Common Input Fields
 
 Current `PreToolUse`-style payloads commonly include:
@@ -112,6 +119,15 @@ output = deny.pre_tool_use_json("Blocked direct secret file access: .env.")
 ```
 
 The builders validate their result before returning it.
+
+Minimal validated output examples live in `examples/`:
+
+```text
+examples/pre_tool_use_allow.json
+examples/pre_tool_use_deny.json
+examples/permission_request_allow.json
+examples/permission_request_deny.json
+```
 
 ## What Is Fixed
 
