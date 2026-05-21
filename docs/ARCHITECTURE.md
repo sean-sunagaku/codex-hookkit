@@ -7,7 +7,8 @@ building Codex hook guards without guessing the hook payload contract.
 
 - Treat upstream Codex generated JSON schemas as the source of truth.
 - Keep the Python API thin and predictable.
-- Make hook guards easy to run from `stdin` in Codex CLI.
+- Make hook guards easy to write as normal Python files.
+- Keep the CLI as a sample runner and setup helper, not the main abstraction.
 - Prefer a safe default policy, while leaving real product policy to callers.
 - Avoid vendoring the full `openai/codex` repository unless it becomes useful.
 
@@ -19,7 +20,9 @@ src/codex_hookkit/
   payload.py      # HookPayload parsing from stdin, stream, or dict
   decisions.py    # allow / deny decision helpers and hook JSON builders
   policy.py       # minimal SecretPolicy default guard
-  cli.py          # codex-hookkit command line entrypoint
+  upstream.py     # importable schema snapshot downloader
+  scaffold.py     # hook skeleton generation
+  cli.py          # sample runner and project setup helpers
 ```
 
 The repository also contains:
@@ -34,7 +37,7 @@ tools/update_codex_hook_schemas.py
 tests/test_cli.py
 ```
 
-## Data Flow
+## Library-First Data Flow
 
 ```mermaid
 flowchart LR
@@ -47,6 +50,10 @@ flowchart LR
   F -->|"deny"| H["exit 2 + stderr"]
   F -->|"--json-output"| I["validated hookSpecificOutput JSON"]
 ```
+
+The CLI `guard` command follows this same flow, but it is intentionally just a
+minimal sample / generic runner. Production hooks should usually be ordinary
+Python files that import `codex_hookkit`.
 
 ## Schema Strategy
 
@@ -83,12 +90,21 @@ Stable concepts:
 - `Decision`: allowed or denied result.
 - `allow` / `deny`: builders for both simple decisions and Codex JSON output.
 - `validate`: validate arbitrary input or output against vendored schemas.
+- `download_schema_snapshot`: fetch generated schemas from `openai/codex`.
+- `secret_guard_hook`: generate the minimal import-first hook skeleton.
 
 The current default policy is conservative but not complete. It blocks common
 direct reads of `.env`, `.pypirc`, `.npmrc`, `.netrc`, `.ssh`, private key file
 names, and selected token environment names.
 
-## CLI Contract
+## CLI Role
+
+`codex-hookkit` is useful, but it is not the core architecture. It provides:
+
+- `guard`: minimal sample / generic guard runner
+- `schemas`: schema discovery
+- `scaffold`: hook skeleton generation
+- `download-schemas`: upstream schema snapshot download
 
 `codex-hookkit guard` reads one JSON payload from `stdin`.
 
@@ -121,7 +137,9 @@ Keep these boundaries in mind:
 - Payload normalization belongs in `payload.py`.
 - Codex output shaping belongs in `decisions.py`.
 - Security rules belong in `policy.py` or caller-owned policies.
-- CLI argument parsing and exit behavior belong in `cli.py`.
+- Schema download belongs in `upstream.py`.
+- Skeleton text belongs in `scaffold.py`.
+- CLI argument parsing and sample runner behavior belong in `cli.py`.
 
 Do not add product-specific policy directly to the default package unless it is
 generic enough to help most Codex hook users.

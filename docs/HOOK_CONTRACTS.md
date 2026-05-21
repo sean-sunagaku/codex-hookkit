@@ -33,6 +33,12 @@ List available base names with:
 uv run codex-hookkit schemas
 ```
 
+List concrete file-style input and output schema names with:
+
+```sh
+uv run codex-hookkit schemas --direction both
+```
+
 ## Input Validation
 
 Use `HookPayload` when writing a hook:
@@ -49,6 +55,26 @@ Disable validation only for debugging:
 ```python
 payload = HookPayload.from_stdin(schema="pre-tool-use", validate_schema=False)
 ```
+
+Codex sends the hook payload as one JSON object on `stdin`. The exact fields are
+defined by the matching upstream input schema. `codex-hookkit` does not invent
+that shape; it validates and exposes it.
+
+Common fields currently include:
+
+- `hook_event_name`
+- `session_id`
+- `turn_id`
+- `cwd`
+- `tool_name`
+- `tool_input`
+- `tool_use_id`
+- `permission_mode`
+- `model`
+- `transcript_path`
+
+Treat the schema as the contract. Treat convenience properties like
+`payload.tool_input` and `payload.command_text()` as helpers layered on top.
 
 ## Command Extraction
 
@@ -106,12 +132,50 @@ vendored output schema.
 
 All JSON builders in `decisions.py` validate their output before returning it.
 
+The fixed part of a structured hook response is the upstream output schema.
+For `PreToolUse`, that means the response must use `hookSpecificOutput` with:
+
+- `hookEventName`
+- `permissionDecision`
+- optional `permissionDecisionReason`
+- optional `additionalContext`
+
+For `PermissionRequest`, the response must use the `decision` shape defined in
+`permission-request.command.output.schema.json`.
+
+When in doubt, load the exact schema:
+
+```python
+from codex_hookkit import load_schema
+
+schema = load_schema("pre-tool-use", direction="output")
+```
+
+## Skeleton Generation
+
+Generate a minimal import-first hook:
+
+```sh
+uv run codex-hookkit scaffold --output hooks/secret_guard.py
+```
+
+That file is meant to be edited by the application. The CLI runner is useful
+for quick starts, but custom hook behavior should live in your Python file.
+
 ## Updating Schemas
 
 Update to the latest upstream Codex schema snapshot with:
 
 ```sh
 uv run python tools/update_codex_hook_schemas.py
+```
+
+The same operation is importable:
+
+```python
+from codex_hookkit import download_schema_snapshot
+
+snapshot = download_schema_snapshot("third_party/openai-codex-hook-schemas")
 ```
 
 Or pin a specific upstream commit:

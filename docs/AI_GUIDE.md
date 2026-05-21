@@ -32,6 +32,7 @@ docs/RELEASE.md
 - `openai/codex` generated schemas are the upstream contract.
 - Do not hand-edit vendored schema JSON files.
 - Update schema JSON through `tools/update_codex_hook_schemas.py`.
+- Keep the core API import-first. The CLI is a sample runner and helper.
 - Keep product-specific security rules out of the default policy.
 - Validate hook input and generated hook output whenever practical.
 - Preserve `exit 2 + stderr` as the default blocking behavior.
@@ -46,6 +47,7 @@ uv run pytest -q
 uv build
 uv run twine check dist/*
 uvx --refresh-package codex-hookkit --from codex-hookkit codex-hookkit schemas
+uv run codex-hookkit scaffold --output /tmp/secret_guard.py
 ```
 
 Codex CLI smoke checks:
@@ -82,6 +84,18 @@ When changing policy:
 - edit `policy.py`
 - add focused CLI tests
 - document the rule in `README.md` or `docs/ARCHITECTURE.md`
+
+When changing scaffolding:
+
+- edit `scaffold.py`
+- keep generated files short and import-first
+- add CLI tests for generated output
+
+When changing upstream downloads:
+
+- edit `upstream.py`
+- keep `tools/update_codex_hook_schemas.py` as a thin wrapper
+- avoid adding runtime network calls to hook evaluation
 
 When changing JSON output:
 

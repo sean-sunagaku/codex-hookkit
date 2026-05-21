@@ -59,6 +59,7 @@ print(data["info"]["name"], data["info"]["version"])
 PY
 
 uvx --refresh-package codex-hookkit --from codex-hookkit codex-hookkit schemas
+uvx --refresh-package codex-hookkit --from codex-hookkit codex-hookkit scaffold
 ```
 
 Confirm the PyPI page:

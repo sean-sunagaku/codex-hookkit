@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 from typing import Optional
 
 from .decisions import allow, deny, dump_json
 from .payload import HookPayload
 from .policy import SecretPolicy
+from .scaffold import secret_guard_hook
 from .schemas import available_schemas
+from .upstream import DEFAULT_DEST, download_schema_snapshot
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -29,7 +32,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="skip input validation against the vendored upstream schema",
     )
 
-    subparsers.add_parser("schemas", help="list vendored hook schemas")
+    schemas = subparsers.add_parser("schemas", help="list vendored hook schemas")
+    schemas.add_argument(
+        "--direction",
+        choices=("input", "output", "both"),
+        default="input",
+        help="schema direction to display in the file-style names",
+    )
+
+    scaffold = subparsers.add_parser("scaffold", help="write a minimal import-first hook script")
+    scaffold.add_argument("--schema", default="pre-tool-use", choices=available_schemas())
+    scaffold.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        help="write the skeleton to this file instead of stdout",
+    )
+
+    download = subparsers.add_parser("download-schemas", help="download upstream generated hook schemas")
+    download.add_argument("--commit", help="upstream openai/codex commit; defaults to HEAD")
+    download.add_argument(
+        "--dest",
+        type=Path,
+        default=DEFAULT_DEST,
+        help="destination directory for the schema snapshot",
+    )
     return parser
 
 
@@ -38,7 +65,30 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     if args.command == "schemas":
         for name in available_schemas():
-            print(name)
+            if args.direction == "both":
+                print(f"{name}.command.input.schema.json")
+                print(f"{name}.command.output.schema.json")
+            elif args.direction == "output":
+                print(f"{name}.command.output.schema.json")
+            else:
+                print(name)
+        return 0
+
+    if args.command == "scaffold":
+        content = secret_guard_hook(schema=args.schema)
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(content, encoding="utf-8")
+        else:
+            print(content, end="")
+        return 0
+
+    if args.command == "download-schemas":
+        snapshot = download_schema_snapshot(args.dest, commit=args.commit)
+        print(
+            f"downloaded {snapshot.schema_count} schema files from "
+            f"{snapshot.repo}@{snapshot.commit} to {snapshot.destination}"
+        )
         return 0
 
     if args.command == "guard":

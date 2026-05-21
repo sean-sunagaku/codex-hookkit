@@ -6,13 +6,14 @@
 
 `codex-hookkit` は Codex hooks を Python で作るための最小 toolkit です。
 上流 `openai/codex` の generated hook JSON schema を contract として扱い、
-その上に薄い parser、decision helper、default policy、CLI を置きます。
+その上に薄い parser、decision helper、default policy、scaffold、補助 CLI を置きます。
 
 ## Read Before Editing
 
 - `README.md`
 - `docs/ARCHITECTURE.md`
 - `docs/HOOK_CONTRACTS.md`
+- `docs/PAYLOADS.md`
 - `docs/AI_GUIDE.md`
 - `src/codex_hookkit/*.py`
 - `tests/test_cli.py`
@@ -26,6 +27,7 @@ Release や publish を扱う場合は `docs/RELEASE.md` も読んでくださ�
 - schema JSON は手編集せず、`tools/update_codex_hook_schemas.py` 経由で更新する。
 - runtime hook evaluation に不要な network access を入れない。
 - default policy は汎用的な secret guard に留め、プロダクト固有ルールを混ぜない。
+- core は import-first に保ち、CLI は sample runner / scaffold / schema helper に留める。
 - `exit 2 + stderr` による deny 動作を壊さない。
 - JSON output helper は vendored output schema で validation する。
 

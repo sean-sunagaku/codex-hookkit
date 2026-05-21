@@ -1,6 +1,7 @@
 .venv/
 .pytest_cache/
 .serena/
+.DS_Store
 __pycache__/
 *.py[cod]
 dist/

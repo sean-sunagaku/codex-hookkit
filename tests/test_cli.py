@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from pathlib import Path
 
 
 BASE_PAYLOAD = {
@@ -53,3 +54,40 @@ def test_guard_json_output_validates() -> None:
     assert result.returncode == 0
     output = json.loads(result.stdout)
     assert output["hookSpecificOutput"]["permissionDecision"] == "deny"
+
+
+def test_scaffold_outputs_import_first_hook() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "codex_hookkit.cli", "scaffold"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0
+    assert "from codex_hookkit import HookPayload, SecretPolicy, deny" in result.stdout
+    assert "HookPayload.from_stdin(schema='pre-tool-use')" in result.stdout
+
+
+def test_scaffold_writes_output_file(tmp_path: Path) -> None:
+    output = tmp_path / "hooks" / "secret_guard.py"
+    result = subprocess.run(
+        [sys.executable, "-m", "codex_hookkit.cli", "scaffold", "--output", str(output)],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0
+    assert output.exists()
+    assert "def main() -> int:" in output.read_text(encoding="utf-8")
+
+
+def test_schemas_can_print_file_style_names() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "codex_hookkit.cli", "schemas", "--direction", "both"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0
+    assert "pre-tool-use.command.input.schema.json" in result.stdout
+    assert "pre-tool-use.command.output.schema.json" in result.stdout
