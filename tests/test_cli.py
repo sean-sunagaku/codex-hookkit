@@ -63,23 +63,10 @@ def test_scaffold_outputs_import_first_hook() -> None:
         check=False,
     )
     assert result.returncode == 0
-    assert "from codex_hookkit import PreToolUseInput, SecretPolicy, deny" in result.stdout
+    assert "from codex_hookkit import PreToolUseInput, deny" in result.stdout
+    assert "SecretPolicy" not in result.stdout
     assert "PreToolUseInput.from_stdin()" in result.stdout
-
-
-def test_scaffold_outputs_codex_review_hooks() -> None:
-    result = subprocess.run(
-        [sys.executable, "-m", "codex_hookkit.cli", "scaffold", "--kind", "codex-review-hooks"],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    assert result.returncode == 0
-    output = json.loads(result.stdout)
-    assert "PostToolUse" in output["hooks"]
-    assert "Stop" in output["hooks"]
-    assert "request-review" in result.stdout
-    assert "run-review" in result.stdout
+    assert "def blocked_reason" in result.stdout
 
 
 def test_scaffold_writes_output_file(tmp_path: Path) -> None:

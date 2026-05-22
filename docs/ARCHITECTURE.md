@@ -1,16 +1,16 @@
 # Architecture
 
-`codex-hookkit` is intentionally small. It is a Python helper package for
-building Codex hook guards without guessing the hook payload contract.
+`codex-hookkit` is intentionally small. It provides the stable pieces needed to
+write Python Codex hooks without guessing the hook payload contract.
 
 ## Design Goals
 
 - Treat upstream Codex generated JSON schemas as the source of truth.
-- Keep the Python API thin and predictable.
-- Make hook guards easy to write as normal Python files.
-- Keep the CLI as a sample runner and setup helper, not the main abstraction.
-- Prefer a safe default policy, while leaving real product policy to callers.
-- Avoid vendoring the full `openai/codex` repository unless it becomes useful.
+- Keep the public Python API thin and predictable.
+- Make real hooks normal Python files owned by the consuming project.
+- Keep policy, review orchestration, trust-state writes, and schema downloads
+  outside the stable package API.
+- Keep the CLI as a sample guard runner, schema lister, and skeleton helper.
 
 ## Package Shape
 
@@ -21,183 +21,143 @@ src/codex_hookkit/
     schemas.py      # schema discovery, loading, and jsonschema validation
     inputs.py       # generated Pydantic classes for schema-valid hook inputs
     outputs.py      # generated Pydantic classes for schema-valid hook outputs
-    decisions.py    # compatibility allow / deny helpers over generated outputs
-    policy.py       # minimal SecretPolicy default guard
-    review.py       # changed-code marker and Stop-hook Codex review runner
-    trust.py        # Codex hook trusted-hash writer
-    upstream.py     # importable schema snapshot downloader
-    scaffold.py     # hook skeleton and project skeleton generation
+    decisions.py    # allow / deny helpers over generated outputs
   cli/
-    __init__.py     # public CLI package re-export
-    main.py         # sample runner and project setup helpers
-    __main__.py     # python -m codex_hookkit.cli
+    __init__.py
+    main.py         # sample guard runner, schemas, scaffold, init
+    _scaffold.py    # private CLI skeleton text
+    __main__.py
 ```
 
-Internal implementation lives under `codex_hookkit.core`. User hook files
-should usually import from the package root, for example
-`from codex_hookkit import PreToolUseInput`. Code that needs non-root internals
-should import from `codex_hookkit.core.*`.
-
-The repository also contains:
+The repository also contains non-package examples and maintainer tools:
 
 ```text
-third_party/openai-codex-hook-schemas/
-  generated/*.schema.json
-  UPSTREAM.md
+examples/
+  secret_guard_policy.py
+  python_hooks/
+  hooks.json
+  codex_review_hooks.json
 
-tools/update_codex_hook_schemas.py
-tools/generate_pydantic_models.py
-.codex/hooks.json
-tests/test_cli.py
-tests/test_outputs.py
-tests/test_review.py
+tools/
+  generate_pydantic_models.py
+  update_codex_hook_schemas.py
+  trust_codex_hooks.py
 ```
 
-## Library-First Data Flow
+## Library Data Flow
 
 ```mermaid
 flowchart LR
   A["Codex hook event"] --> B["stdin JSON payload"]
   B --> C["XxxInput.from_stdin"]
-  C --> D["schemas.validate(input)"]
-  D --> E["SecretPolicy.evaluate"]
-  E --> F{"Decision"}
-  F -->|"allow"| G["exit 0"]
-  F -->|"deny"| H["exit 2 + stderr"]
-  F -->|"--json-output"| I["validated hookSpecificOutput JSON"]
+  C --> D["vendored schema validation"]
+  D --> E["hook-owned policy logic"]
+  E --> F{"result"}
+  F -->|"allow"| G["XxxOutput.allow().write or exit 0"]
+  F -->|"deny"| H["XxxOutput.deny(...).write or exit 2 + stderr"]
 ```
 
-The CLI `guard` command follows this same flow, but it is intentionally just a
-minimal sample / generic runner. Production hooks should usually be ordinary
-Python files that import `codex_hookkit`.
-
-## Schema Strategy
-
-The package vendors only `openai/codex` generated hook schema JSON files.
-Those files live under `third_party/openai-codex-hook-schemas/generated`.
-
-At build time, Hatch includes the snapshot inside the wheel at:
-
-```text
-codex_hookkit/vendor/openai-codex-hook-schemas/generated
-```
-
-At development time, `schemas.py` can also read the local `third_party`
-snapshot. This keeps local tests and editable usage simple.
-
-This is deliberately a snapshot, not a Git submodule:
-
-- Reviews show exactly which schema JSON files changed.
-- The package does not pull in the full Codex Rust codebase.
-- Updates are explicit and pinned through `UPSTREAM.md`.
+`schemas.py` is the small but important core piece that loads vendored schema
+JSON and validates payloads. Generated input and output models call into this
+layer, so it stays in `core`.
 
 ## Public API
 
 The intended import path is:
 
 ```python
-from codex_hookkit import PreToolUseInput, PreToolUseOutput, SecretPolicy
+from codex_hookkit import PreToolUseInput, PreToolUseOutput
 ```
 
 Stable concepts:
 
 - `StructuredInput`: base class for generated, schema-validated input models.
-- `PreToolUseInput`, `PermissionRequestInput`, and other generated input
-  classes: typed hook input readers.
-- `SecretPolicy`: small default policy for secret-file and token access.
-- `Decision`: allowed or denied result.
+- generated input classes such as `PreToolUseInput` and
+  `PermissionRequestInput`.
 - `StructuredOutput`: base class for generated, schema-validated output models.
-- `PreToolUseOutput`, `PermissionRequestOutput`, and other generated output
-  classes: structured hook output builders.
-- `allow` / `deny`: compatibility builders for simple decisions and common
-  Codex JSON output.
-- `validate`: validate arbitrary input or output against vendored schemas.
-- `download_schema_snapshot`: fetch generated schemas from `openai/codex`.
-- `secret_guard_hook`: generate the minimal import-first hook skeleton.
-- `request_review` / `run_review`: mark changed code in `PostToolUse`, then run
-  one nested Codex review in `Stop`.
+- generated output classes such as `PreToolUseOutput` and
+  `PermissionRequestOutput`.
+- `Decision`, `allow`, and `deny`: small compatibility helpers.
+- `load_schema`, `schema_path`, `available_schemas`, and `validate`.
 
-The current default policy is conservative but not complete. It blocks common
-direct reads of `.env`, `.pypirc`, `.npmrc`, `.netrc`, `.ssh`, private key file
-names, and selected token environment names.
+Not public package API:
+
+- project policy rules
+- Codex review orchestration
+- Codex hook trust-state writing
+- upstream schema downloading
+- skeleton text internals
+
+Those live in `examples/` and `tools/`.
+
+## Schema Strategy
+
+The package vendors only generated hook schema JSON files from `openai/codex`.
+Those files live under `third_party/openai-codex-hook-schemas/generated` in the
+repository and are included in the wheel under:
+
+```text
+codex_hookkit/vendor/openai-codex-hook-schemas/generated
+```
+
+This is deliberately a snapshot, not a Git submodule:
+
+- reviews show exactly which schema JSON files changed
+- the package does not pull in the full Codex Rust codebase
+- updates are explicit and pinned through `UPSTREAM.md`
+
+Update the snapshot with:
+
+```sh
+uv run python tools/update_codex_hook_schemas.py
+```
 
 ## CLI Role
 
-`codex-hookkit` is useful, but it is not the core architecture. It provides:
+The `codex-hookkit` CLI is intentionally small:
 
 - `guard`: minimal sample / generic guard runner
 - `schemas`: schema discovery
 - `scaffold`: hook skeleton generation
 - `init`: minimal project skeleton generation
-- `download-schemas`: upstream schema snapshot download
-- `trust-hooks`: write hook trusted hashes into Codex config.toml
 
-`codex-hookkit guard` reads one JSON payload from `stdin`.
+Trust-state writes, review hooks, and schema downloads are repository tools or
+examples, not installed CLI commands.
 
-Default behavior:
-
-- valid and allowed payload: exit `0`
-- invalid payload: exit `2` with stderr
-- denied payload: exit `2` with stderr
-
-With `--json-output`, denials and allows are emitted as validated
-`hookSpecificOutput` JSON and the process exits `0`.
-
-## Generated Input And Output Models
+## Generated Models
 
 `src/codex_hookkit/core/inputs.py` and `src/codex_hookkit/core/outputs.py` are
-generated from the vendored Codex input and output schemas. They should not be
-edited by hand.
+generated from the vendored Codex schemas. They should not be edited by hand.
 
-Regenerate it with:
+Regenerate them with:
 
 ```sh
 uv run python tools/generate_pydantic_models.py
 ```
 
 The test suite includes an exact sync check so generated classes cannot drift
-from the generator. This keeps the architecture simple:
+from the generator.
 
-- schema files define the contract
-- the generator turns that contract into Pydantic classes
-- `inputs.py` exposes structured, validated hook payloads
-- `outputs.py` exposes structured, validated responses
-- `decisions.py` remains a thin backward-compatible wrapper
-
-## Local Codex Hook Config
+## Local Dogfooding
 
 The repository includes `.codex/hooks.json` for dogfooding:
 
-- `PreToolUse` runs `codex-hookkit guard --schema pre-tool-use`
-- `PermissionRequest` runs `codex-hookkit guard --schema permission-request`
-- `PostToolUse` runs `codex-hookkit request-review`
-- `Stop` runs `codex-hookkit run-review`
+- `PreToolUse` runs the CLI sample guard.
+- `PermissionRequest` runs the CLI sample guard.
+- `PostToolUse` runs the Python review example.
+- `Stop` runs the Python review example.
 
-The command uses `uv run python -m codex_hookkit.cli` so local changes are
-tested before an installed wheel.
-
-The review hooks are deliberately split into two phases. `PostToolUse` only
-writes a small marker under `.codex-hookkit/` when git reports changed code
-files. `Stop` consumes that marker and launches `codex exec` once. Nested review
-runs set `CODEX_HOOKKIT_REVIEW_ACTIVE=1`, and hook helpers no-op when that
-variable is present, preventing recursive reviews.
+The review example is deliberately outside package API. It shows one way to
+wire a two-phase review hook, but consuming projects should copy and adapt it.
 
 ## Boundaries
 
 This project is a toolkit, not a full policy engine.
 
-Keep these boundaries in mind:
-
 - Schema validation belongs in `core/schemas.py`.
-- Generated Codex input models belong in `core/inputs.py`.
-- Generated Codex output models belong in `core/outputs.py`.
-- Compatibility decision helpers belong in `core/decisions.py`.
-- Security rules belong in `core/policy.py` or caller-owned policies.
-- Changed-code review orchestration belongs in `core/review.py`.
-- Codex hook trust-state hashing and config writes belong in `core/trust.py`.
-- Schema download belongs in `core/upstream.py`.
-- Skeleton text belongs in `core/scaffold.py`.
+- Generated input models belong in `core/inputs.py`.
+- Generated output models belong in `core/outputs.py`.
+- Decision helpers belong in `core/decisions.py`.
+- Sample policy belongs in `examples/`.
+- Maintainer-only operational helpers belong in `tools/`.
 - CLI argument parsing and sample runner behavior belong in `cli/`.
-
-Do not add product-specific policy directly to the default package unless it is
-generic enough to help most Codex hook users.

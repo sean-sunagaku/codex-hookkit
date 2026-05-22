@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import re
+import shlex
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
-from codex_hookkit.core.decisions import allow, deny, dump_json
+from codex_hookkit.cli._scaffold import project_skeleton, secret_guard_hook
+from codex_hookkit.core.decisions import Decision, allow, deny, dump_json
 from codex_hookkit.core.inputs import (
     PermissionRequestInput,
     PostCompactInput,
@@ -19,12 +22,7 @@ from codex_hookkit.core.inputs import (
     SubagentStopInput,
     UserPromptSubmitInput,
 )
-from codex_hookkit.core.policy import SecretPolicy
-from codex_hookkit.core.review import request_review, run_review
-from codex_hookkit.core.scaffold import codex_review_hooks, project_skeleton, secret_guard_hook
 from codex_hookkit.core.schemas import available_schemas
-from codex_hookkit.core.trust import hook_trust_entries, write_hook_trusts
-from codex_hookkit.core.upstream import DEFAULT_DEST, download_schema_snapshot
 
 INPUT_MODELS = {
     "permission-request": PermissionRequestInput,
@@ -63,7 +61,7 @@ def build_parser() -> argparse.ArgumentParser:
     scaffold = subparsers.add_parser("scaffold", help="write a minimal hook skeleton")
     scaffold.add_argument(
         "--kind",
-        choices=("secret-guard", "codex-review-hooks"),
+        choices=("secret-guard",),
         default="secret-guard",
         help="skeleton kind to write",
     )
@@ -88,54 +86,6 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="overwrite existing generated skeleton files",
     )
-    init.add_argument(
-        "--with-review",
-        action="store_true",
-        help="include the optional PostToolUse/Stop Codex review hook flow",
-    )
-
-    download = subparsers.add_parser(
-        "download-schemas", help="download upstream generated hook schemas"
-    )
-    download.add_argument("--commit", help="upstream openai/codex commit; defaults to HEAD")
-    download.add_argument(
-        "--dest",
-        type=Path,
-        default=DEFAULT_DEST,
-        help="destination directory for the schema snapshot",
-    )
-
-    trust = subparsers.add_parser(
-        "trust-hooks", help="write Codex hook trusted hashes into config.toml"
-    )
-    trust.add_argument(
-        "--hooks-path",
-        type=Path,
-        default=Path(".codex/hooks.json"),
-        help="hooks.json file to trust",
-    )
-    trust.add_argument(
-        "--config",
-        type=Path,
-        default=Path.home() / ".codex" / "config.toml",
-        help="Codex config.toml to update",
-    )
-    trust.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="print entries without writing config.toml",
-    )
-
-    request = subparsers.add_parser(
-        "request-review", help="mark that changed code should receive a Stop-hook Codex review"
-    )
-    request.add_argument("--state-dir", default=".codex-hookkit")
-
-    review = subparsers.add_parser("run-review", help="run a pending Stop-hook Codex review")
-    review.add_argument("--state-dir", default=".codex-hookkit")
-    review.add_argument("--codex-bin", default="codex")
-    review.add_argument("--timeout", type=int, default=240)
-    review.add_argument("--dry-run", action="store_true", help="print the review prompt only")
     return parser
 
 
@@ -154,10 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "scaffold":
-        if args.kind == "codex-review-hooks":
-            content = codex_review_hooks()
-        else:
-            content = secret_guard_hook(schema=args.schema)
+        content = secret_guard_hook(schema=args.schema)
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(content, encoding="utf-8")
@@ -170,7 +117,6 @@ def main(argv: list[str] | None = None) -> int:
             written = project_skeleton(
                 args.output_dir,
                 force=args.force,
-                include_review=args.with_review,
             )
         except Exception as exc:
             return deny.stderr_exit(f"Failed to write Codex hook skeleton: {exc}")
@@ -178,55 +124,13 @@ def main(argv: list[str] | None = None) -> int:
             print(path)
         return 0
 
-    if args.command == "download-schemas":
-        snapshot = download_schema_snapshot(args.dest, commit=args.commit)
-        print(
-            f"downloaded {snapshot.schema_count} schema files from "
-            f"{snapshot.repo}@{snapshot.commit} to {snapshot.destination}"
-        )
-        return 0
-
-    if args.command == "trust-hooks":
-        try:
-            if args.dry_run:
-                entries = hook_trust_entries(args.hooks_path)
-                for entry in entries:
-                    print(f"{entry.key} {entry.current_hash}")
-                return 0
-            result = write_hook_trusts(args.hooks_path, config_path=args.config)
-        except Exception as exc:
-            return deny.stderr_exit(f"Failed to write Codex hook trust state: {exc}")
-        print(f"wrote {result.count} hook trust entries to {result.config_path}")
-        return 0
-
-    if args.command == "request-review":
-        try:
-            payload = read_input("post-tool-use")
-        except Exception as exc:
-            return deny.stderr_exit(f"Invalid Codex hook payload: {exc}")
-        request_review(payload, state_dir=args.state_dir)
-        return 0
-
-    if args.command == "run-review":
-        try:
-            payload = read_input("stop")
-        except Exception as exc:
-            return deny.stderr_exit(f"Invalid Codex hook payload: {exc}")
-        return run_review(
-            payload,
-            state_dir=args.state_dir,
-            codex_bin=args.codex_bin,
-            dry_run=args.dry_run,
-            timeout=args.timeout,
-        )
-
     if args.command == "guard":
         try:
             payload = read_input(args.schema)
         except Exception as exc:
             return deny.stderr_exit(f"Invalid Codex hook payload: {exc}")
 
-        decision = SecretPolicy.default().evaluate(payload)
+        decision = sample_secret_guard_decision(payload)
         if decision.denied:
             if args.json_output:
                 if args.schema == "permission-request":
@@ -249,6 +153,99 @@ def main(argv: list[str] | None = None) -> int:
 
 def read_input(schema: str) -> object:
     return INPUT_MODELS[schema].from_stdin()
+
+
+def sample_secret_guard_decision(payload: object) -> Decision:
+    """Evaluate the CLI sample guard policy.
+
+    This is intentionally private to the CLI sample runner. Real hooks should
+    copy or write their own policy logic instead of importing a package policy.
+    """
+
+    command = _command_text(payload)
+    if not command:
+        return allow.decision()
+
+    env_match = _blocked_env_name(command)
+    if env_match:
+        return deny.decision(f"Blocked direct secret environment access: {env_match}.")
+
+    path_match = _blocked_path(command)
+    if path_match:
+        return deny.decision(f"Blocked direct secret file access: {path_match}.")
+
+    for pattern in _blocked_command_patterns():
+        if pattern.search(command):
+            return deny.decision("Blocked command that appears to read secrets.")
+
+    return allow.decision()
+
+
+def _blocked_path_fragments() -> tuple[str, ...]:
+    return (
+        "." + "env",
+        "." + "pypirc",
+        "." + "npmrc",
+        "." + "netrc",
+        "." + "ssh",
+        "id_rsa",
+        "id_ed25519",
+    )
+
+
+def _blocked_env_names() -> tuple[str, ...]:
+    return (
+        "PYPI_API_TOKEN",
+        "TWINE_PASSWORD",
+        "CLOUDFLARE_API_TOKEN",
+        "GITHUB_TOKEN",
+        "OPENAI_API_KEY",
+    )
+
+
+def _blocked_command_patterns() -> tuple[re.Pattern[str], ...]:
+    sensitive_files = r"\.(env|pypirc|npmrc)"
+    return (
+        re.compile(r"\b(printenv|env)\b.*\b(TOKEN|SECRET|PASSWORD|KEY)\b", re.IGNORECASE),
+        re.compile(rf"\b(cat|less|more|tail|head|sed|awk|rg|grep)\b.*{sensitive_files}\b"),
+    )
+
+
+def _blocked_env_name(command: str) -> str:
+    for name in _blocked_env_names():
+        if re.search(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", command):
+            return name
+    return ""
+
+
+def _blocked_path(command: str) -> str:
+    for token in _split_command(command):
+        normalized = token.replace("\\", "/")
+        path = PurePosixPath(normalized)
+        parts = set(path.parts)
+        for fragment in _blocked_path_fragments():
+            if fragment in normalized or fragment in parts:
+                return token
+    return ""
+
+
+def _split_command(command: str) -> list[str]:
+    try:
+        return shlex.split(command)
+    except ValueError:
+        return command.split()
+
+
+def _command_text(payload: object) -> str:
+    tool_input = getattr(payload, "tool_input", None)
+    if isinstance(tool_input, dict):
+        for key in ("cmd", "command", "script"):
+            value = tool_input.get(key)
+            if isinstance(value, str):
+                return value
+    if isinstance(tool_input, str):
+        return tool_input
+    return ""
 
 
 if __name__ == "__main__":

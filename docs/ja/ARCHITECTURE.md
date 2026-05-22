@@ -1,6 +1,6 @@
 # アーキテクチャ
 
-`codex-hookkit` は Codex Hooks を Python で作るための小さなライブラリです。
+`codex-hookkit` は Codex Hooks を Python で作るための小さな toolkit です。
 上流 `openai/codex` の generated schema を source of truth とし、その上に
 薄い Python API を置きます。
 
@@ -13,21 +13,26 @@ src/codex_hookkit/
     schemas.py      # schema の探索、読み込み、validation
     inputs.py       # schema から生成した Hook input model
     outputs.py      # schema から生成した Hook output model
-    decisions.py    # allow / deny 互換 helper
-    policy.py       # 最小の SecretPolicy
-    review.py       # PostToolUse/Stop を使う Codex review hook
-    trust.py        # Codex hook trust state 書き込み
-    upstream.py     # schema snapshot downloader
-    scaffold.py     # hook skeleton / project skeleton 生成
+    decisions.py    # allow / deny helper
   cli/
-    __init__.py     # CLI package re-export
-    main.py         # sample runner と補助 CLI
-    __main__.py     # python -m codex_hookkit.cli
+    main.py         # sample guard runner / schemas / scaffold / init
+    _scaffold.py    # CLI 内部の skeleton text
 ```
 
-内部実装は `codex_hookkit.core` に置きます。hook 利用者は基本的に
-`from codex_hookkit import PreToolUseInput` のように package root から import し、
-内部 module が必要な場合だけ `codex_hookkit.core.*` を使います。
+`policy`、`trust`、`review`、`upstream update` は stable package API では
+ありません。サンプルや運用補助は `examples/` と `tools/` に置きます。
+
+```text
+examples/
+  secret_guard_policy.py
+  python_hooks/
+  hooks.json
+  codex_review_hooks.json
+
+tools/
+  update_codex_hook_schemas.py
+  trust_codex_hooks.py
+```
 
 ## 基本フロー
 
@@ -35,12 +40,27 @@ src/codex_hookkit/
 Codex hook JSON
   -> XxxInput.from_stdin()
   -> schema validation
-  -> policy / hook logic
+  -> hook 側の policy logic
   -> XxxOutput.write() または exit status
 ```
 
-基本は `InputModel` で受けて `OutputModel` で返します。payload の共通
-wrapper は持たず、hook ごとの生成 model をそのまま扱います。
+`schemas.py` は残します。これは vendored schema を読み込み、Input/Output
+model が Codex の contract に合っているか確認する中核です。
+
+## Public API
+
+hook 利用者は基本的に package root から import します。
+
+```python
+from codex_hookkit import PreToolUseInput, PreToolUseOutput
+```
+
+public API は次に絞ります。
+
+- 生成 Input model
+- 生成 Output model
+- `load_schema` / `validate` などの schema helper
+- `allow` / `deny` / `Decision`
 
 ## Generator
 

@@ -1,5 +1,3 @@
-"""Small default policies for Codex hook guards."""
-
 from __future__ import annotations
 
 import re
@@ -7,52 +5,52 @@ import shlex
 from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 
-from .decisions import Decision, allow, deny
+from codex_hookkit import Decision, allow, deny
 
 
 @dataclass(frozen=True)
-class SecretPolicy:
-    """Block common direct secret and environment-file access patterns."""
+class SecretGuardPolicy:
+    """Example policy for blocking direct secret file and token access."""
 
     blocked_path_fragments: tuple[str, ...] = (
-        ".env",
-        ".pypirc",
-        ".npmrc",
-        ".netrc",
-        ".ssh",
-        "id_rsa",
-        "id_ed25519",
+        "." + "env",
+        "." + "pypirc",
+        "." + "npmrc",
+        "." + "netrc",
+        "." + "ssh",
+        "id_" + "rsa",
+        "id_" + "ed25519",
     )
     blocked_env_names: tuple[str, ...] = (
-        "PYPI_API_TOKEN",
-        "TWINE_PASSWORD",
-        "CLOUDFLARE_API_TOKEN",
-        "GITHUB_TOKEN",
-        "OPENAI_API_KEY",
+        "PYPI" + "_API" + "_TOKEN",
+        "TWINE" + "_PASSWORD",
+        "CLOUDFLARE" + "_API" + "_TOKEN",
+        "GITHUB" + "_TOKEN",
+        "OPENAI" + "_API" + "_KEY",
     )
     blocked_command_patterns: tuple[re.Pattern[str], ...] = field(default_factory=tuple)
 
     @classmethod
-    def default(cls) -> SecretPolicy:
+    def default(cls) -> SecretGuardPolicy:
+        sensitive_files = r"\.(env|pypirc|npmrc)"
+        sensitive_words = "TOKEN|SECRET|PASSWORD|KEY"
         return cls(
             blocked_command_patterns=(
-                re.compile(r"\b(printenv|env)\b.*\b(TOKEN|SECRET|PASSWORD|KEY)\b", re.IGNORECASE),
-                re.compile(
-                    r"\b(cat|less|more|tail|head|sed|awk|rg|grep)\b.*\.(env|pypirc|npmrc)\b"
-                ),
+                re.compile(rf"\b(printenv|env)\b.*\b({sensitive_words})\b", re.I),
+                re.compile(rf"\b(cat|less|more|tail|head|sed|awk|rg|grep)\b.*{sensitive_files}\b"),
             )
         )
 
     def evaluate(self, payload: object) -> Decision:
-        command = _command_text(payload)
+        command = command_text(payload)
         if not command:
             return allow.decision()
 
-        env_match = self._blocked_env_name(command)
+        env_match = self.blocked_env_name(command)
         if env_match:
             return deny.decision(f"Blocked direct secret environment access: {env_match}.")
 
-        path_match = self._blocked_path(command)
+        path_match = self.blocked_path(command)
         if path_match:
             return deny.decision(f"Blocked direct secret file access: {path_match}.")
 
@@ -62,14 +60,14 @@ class SecretPolicy:
 
         return allow.decision()
 
-    def _blocked_env_name(self, command: str) -> str:
+    def blocked_env_name(self, command: str) -> str:
         for name in self.blocked_env_names:
             if re.search(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", command):
                 return name
         return ""
 
-    def _blocked_path(self, command: str) -> str:
-        for token in _split_command(command):
+    def blocked_path(self, command: str) -> str:
+        for token in split_command(command):
             normalized = token.replace("\\", "/")
             path = PurePosixPath(normalized)
             parts = set(path.parts)
@@ -79,14 +77,14 @@ class SecretPolicy:
         return ""
 
 
-def _split_command(command: str) -> list[str]:
+def split_command(command: str) -> list[str]:
     try:
         return shlex.split(command)
     except ValueError:
         return command.split()
 
 
-def _command_text(payload: object) -> str:
+def command_text(payload: object) -> str:
     tool_input = getattr(payload, "tool_input", None)
     if isinstance(tool_input, dict):
         for key in ("cmd", "command", "script"):

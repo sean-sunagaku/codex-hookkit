@@ -1,8 +1,8 @@
 # Project-local Codex config for codex-hookkit.
 #
 # Hook commands live in .codex/hooks.json. Hook trust state is machine-local
-# because Codex keys it by absolute hook file path, so write it with:
+# because Codex keys it by absolute hook file path. For this repository, write it with:
 #
-#   uv run codex-hookkit trust-hooks --hooks-path .codex/hooks.json
+#   uv run python tools/trust_codex_hooks.py --hooks-path .codex/hooks.json
 
 model = "gpt-5.4-mini"

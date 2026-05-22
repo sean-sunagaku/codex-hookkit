@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python -m codex_hookkit.cli request-review",
+            "command": "uv run python examples/python_hooks/codex_review/request_review.py",
             "timeout": 10
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python -m codex_hookkit.cli run-review",
+            "command": "uv run python examples/python_hooks/codex_review/run_review.py",
             "timeout": 300
           }
         ]

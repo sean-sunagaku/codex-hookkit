@@ -3,8 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from codex_hookkit import codex_review_hooks
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -28,8 +26,3 @@ def test_full_hook_example_is_valid_json() -> None:
     config = load_json(ROOT / "examples" / "hooks.json")
     assert isinstance(config, dict)
     assert set(config["hooks"]) == {"PreToolUse", "PermissionRequest", "PostToolUse", "Stop"}
-
-
-def test_codex_review_hook_scaffold_is_valid_json() -> None:
-    config = json.loads(codex_review_hooks())
-    assert set(config["hooks"]) == {"PostToolUse", "Stop"}

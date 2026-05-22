@@ -20,19 +20,26 @@ uv add codex-hookkit
 ## 最小 Hook
 
 ```python
-from codex_hookkit import PreToolUseInput, PreToolUseOutput, SecretPolicy
+from codex_hookkit import PreToolUseInput, PreToolUseOutput
 
 
 def main() -> int:
     payload = PreToolUseInput.from_stdin()
-    decision = SecretPolicy.default().evaluate(payload)
+    reason = blocked_reason(payload)
 
-    if decision.denied:
-        PreToolUseOutput.deny(decision.reason).write()
+    if reason:
+        PreToolUseOutput.deny(reason).write()
     else:
         PreToolUseOutput.allow().write()
 
     return 0
+
+
+def blocked_reason(payload: PreToolUseInput) -> str:
+    command = payload.tool_input.get("cmd", "") if isinstance(payload.tool_input, dict) else ""
+    if command == "pwd":
+        return ""
+    return ""
 ```
 
 最小の hook project skeleton を作る場合は:
@@ -65,17 +72,18 @@ skills/codex-hookkit/SKILL.md
 実際に hook を設定するサンプルは `examples/hooks.json` にあります。
 レビュー hook だけを使いたい場合は `examples/codex_review_hooks.json` を見てください。
 
-Codex の hook trust state を `~/.codex/config.toml` に書き込む場合は:
+Codex の hook trust state を `~/.codex/config.toml` に書き込む場合は、
+repo の tool を使います。
 
 ```sh
-codex-hookkit trust-hooks --hooks-path .codex/hooks.json
+uv run python tools/trust_codex_hooks.py --hooks-path .codex/hooks.json
 ```
 
 このコマンドは、全 command hook について `[hooks.state."..."]` の
 `trusted_hash` を upsert します。書き込み前に確認したい場合は `--dry-run` を使います。
 この repository には Codex 用の project-local `config.toml` も置いています。
 ただし hook trust state は絶対パスを含む machine-local な状態なので commit せず、
-上の `trust-hooks` で各環境の `~/.codex/config.toml` に書き込みます。
+上の tool で各環境の `~/.codex/config.toml` に書き込みます。
 
 実際の Codex CLI と hook trust を使った smoke test は次で実行できます。
 

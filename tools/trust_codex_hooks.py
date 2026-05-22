@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 from dataclasses import dataclass
@@ -172,3 +173,24 @@ def upsert_hook_trust_state(text: str, entry: HookTrustEntry) -> str:
 
 def toml_basic_string(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Write Codex hook trust state for hooks.json.")
+    parser.add_argument("--hooks-path", type=Path, default=Path(".codex/hooks.json"))
+    parser.add_argument("--config", type=Path, default=Path.home() / ".codex" / "config.toml")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args(argv)
+
+    if args.dry_run:
+        for entry in hook_trust_entries(args.hooks_path):
+            print(f"{entry.key} {entry.current_hash}")
+        return 0
+
+    result = write_hook_trusts(args.hooks_path, config_path=args.config)
+    print(f"wrote {result.count} hook trust entries to {result.config_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

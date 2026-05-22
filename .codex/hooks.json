@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'cd \"$(git rev-parse --show-toplevel)\" && exec uv run python -m codex_hookkit.cli request-review'",
+            "command": "sh -c 'cd \"$(git rev-parse --show-toplevel)\" && exec uv run python examples/python_hooks/codex_review/request_review.py'",
             "timeout": 10,
             "statusMessage": "Marking Codex review when code changes"
           }
@@ -45,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'cd \"$(git rev-parse --show-toplevel)\" && exec uv run python -m codex_hookkit.cli run-review'",
+            "command": "sh -c 'cd \"$(git rev-parse --show-toplevel)\" && exec uv run python examples/python_hooks/codex_review/run_review.py'",
             "timeout": 300,
             "statusMessage": "Running Codex review for changed code"
           }

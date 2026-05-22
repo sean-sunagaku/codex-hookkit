@@ -1,12 +1,12 @@
 # codex-hookkit
 
-Small helpers for building Codex hook guards against upstream Codex hook schemas.
+Small helpers for building Python Codex hooks against upstream Codex hook schemas.
 
 `codex-hookkit` starts from one idea: Codex hook code should validate against
 the same generated schemas that Codex itself publishes. The package vendors a
 small schema snapshot from `openai/codex` and adds a thin Python layer for
-payload parsing, allow / deny decisions, scaffold generation, and schema
-snapshot updates.
+schema validation, generated input models, generated output models, and
+allow / deny decisions.
 
 ## What Is Included
 
@@ -16,9 +16,8 @@ snapshot updates.
 - allow / deny output builders
 - Pydantic structured input and output models generated from Codex schemas
 - a minimal sample guard runner CLI
-- a hook skeleton generator
-- a two-step Codex review hook for changed code
-- an importable schema snapshot downloader
+- CLI helpers for hook skeletons, local trust-state writes, review-hook samples,
+  and schema snapshot updates
 
 ## Project Names
 
@@ -47,19 +46,26 @@ For real hook implementations, prefer importing the library from your own
 Python hook file:
 
 ```python
-from codex_hookkit import PreToolUseInput, PreToolUseOutput, SecretPolicy
+from codex_hookkit import PreToolUseInput, PreToolUseOutput
 
 
 def main() -> int:
     payload = PreToolUseInput.from_stdin()
-    decision = SecretPolicy.default().evaluate(payload)
+    reason = blocked_reason(payload)
 
-    if decision.denied:
-        PreToolUseOutput.deny(decision.reason).write()
+    if reason:
+        PreToolUseOutput.deny(reason).write()
     else:
         PreToolUseOutput.allow().write()
 
     return 0
+
+
+def blocked_reason(payload: PreToolUseInput) -> str:
+    command = payload.tool_input.get("cmd", "") if isinstance(payload.tool_input, dict) else ""
+    if command == "pwd":
+        return ""
+    return ""
 ```
 
 Generate that skeleton with:
@@ -124,25 +130,17 @@ For structured Codex hook output:
 codex-hookkit guard --schema pre-tool-use --json-output
 ```
 
-Download a schema snapshot from Python:
-
-```python
-from codex_hookkit import download_schema_snapshot
-
-snapshot = download_schema_snapshot("third_party/openai-codex-hook-schemas")
-print(snapshot.commit, snapshot.schema_count)
-```
-
-Or from the CLI:
+Update the vendored schema snapshot with the repository tool:
 
 ```sh
-codex-hookkit download-schemas --dest third_party/openai-codex-hook-schemas
+uv run python tools/update_codex_hook_schemas.py
 ```
 
-Write Codex hook trust state for all command hooks in a `hooks.json` file:
+Write Codex hook trust state for all command hooks in a `hooks.json` file with
+the repository tool:
 
 ```sh
-codex-hookkit trust-hooks --hooks-path .codex/hooks.json
+uv run python tools/trust_codex_hooks.py --hooks-path .codex/hooks.json
 ```
 
 This upserts `[hooks.state."..."] trusted_hash = "..."` entries in
@@ -175,20 +173,15 @@ did not fire; inspect both the JSON events and hook-related stderr lines.
 
 ## Python API
 
-```python
-from codex_hookkit import PreToolUseInput, PreToolUseOutput, SecretPolicy
+The stable package API is intentionally narrow:
 
-payload = PreToolUseInput.from_stdin()
-decision = SecretPolicy.default().evaluate(payload)
+- generated input models such as `PreToolUseInput`
+- generated output models such as `PreToolUseOutput`
+- schema helpers such as `load_schema` and `validate`
+- small allow / deny decision helpers
 
-if decision.denied:
-    PreToolUseOutput.deny(decision.reason).write()
-else:
-    PreToolUseOutput.allow().write()
-```
-
-JSON output helpers are also available for Codex hook contracts that consume
-structured output.
+Policy, review orchestration, trust-state writes, schema downloading, and
+scaffolding are example/tooling concerns, not public Python APIs.
 
 ## Codex Hook Example
 
@@ -213,13 +206,13 @@ structured output.
 
 ## Codex Review Hook
 
-`codex-hookkit` also includes a small review hook flow for running Codex after
+The repository includes a small review hook example for running Codex after
 code changes:
 
-- `request-review`: a `PostToolUse` hook that marks a pending review when the
-  repository has changed code files
-- `run-review`: a `Stop` hook that consumes the marker and runs one nested
-  `codex exec` review
+- `examples/python_hooks/codex_review/request_review.py`: a `PostToolUse` hook
+  that marks a pending review when the repository has changed code files
+- `examples/python_hooks/codex_review/run_review.py`: a `Stop` hook that
+  consumes the marker and runs one nested `codex exec` review
 
 The nested review inherits `CODEX_HOOKKIT_REVIEW_ACTIVE=1`, so hook commands
 skip themselves during the review and avoid recursive Codex runs.
@@ -233,7 +226,7 @@ skip themselves during the review and avoid recursive Codex runs.
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python -m codex_hookkit.cli request-review",
+            "command": "uv run python examples/python_hooks/codex_review/request_review.py",
             "timeout": 10
           }
         ]
@@ -245,7 +238,7 @@ skip themselves during the review and avoid recursive Codex runs.
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python -m codex_hookkit.cli run-review",
+            "command": "uv run python examples/python_hooks/codex_review/run_review.py",
             "timeout": 300
           }
         ]
@@ -258,7 +251,7 @@ skip themselves during the review and avoid recursive Codex runs.
 Use `--dry-run` to inspect the review prompt without launching Codex:
 
 ```sh
-uv run python -m codex_hookkit.cli run-review --dry-run
+uv run python examples/python_hooks/codex_review/run_review.py --dry-run
 ```
 
 ## Architecture
@@ -269,7 +262,7 @@ The runtime flow is:
 Codex hook payload
   -> XxxInput.from_stdin()
   -> schema validation
-  -> SecretPolicy.evaluate()
+  -> hook-owned policy logic
   -> XxxOutput.write() or exit status
 ```
 
@@ -279,12 +272,9 @@ The key modules are:
 - `core/inputs.py`: generated Pydantic classes for Codex hook inputs
 - `core/outputs.py`: generated Pydantic classes for Codex hook outputs
 - `core/decisions.py`: build allow / deny decisions and structured outputs
-- `core/policy.py`: default secret-file and token-access guard
-- `core/review.py`: two-step changed-code Codex review hook
-- `core/trust.py`: compute and write Codex hook trusted hashes
-- `core/upstream.py`: download pinned upstream schema snapshots
-- `core/scaffold.py`: generate small hook and project skeletons
-- `cli/`: sample runner and project setup helpers
+- `cli/`: sample guard runner, schema listing, and skeleton helpers
+- `examples/`: sample policies and hook files
+- `tools/`: maintainer helpers such as trust-state writing and schema updates
 
 See `docs/ARCHITECTURE.md` for the full design notes.
 

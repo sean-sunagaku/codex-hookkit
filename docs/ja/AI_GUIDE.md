@@ -27,6 +27,6 @@ make check
 ## 変更方針
 
 - input/output model を変える場合は generator と tests を更新する
-- policy を変える場合は `src/codex_hookkit/core/policy.py` と focused test を更新する
-- review hook を変える場合は `src/codex_hookkit/core/review.py` と `tests/test_review.py` を更新する
+- policy sample を変える場合は `examples/secret_guard_policy.py` か skeleton と focused test を更新する
+- review hook example を変える場合は `examples/python_hooks/codex_review/review_helpers.py` と `tests/test_review.py` を更新する
 - docs は英語版と日本語版の両方を更新する

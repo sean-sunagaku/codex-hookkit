@@ -70,8 +70,8 @@ def run_configured_hook(command: str, data: dict[str, object]) -> subprocess.Com
 
 
 def with_dry_run(command: str) -> str:
-    if "run-review'" in command:
-        return command.replace("run-review'", "run-review --dry-run'")
+    if "run_review.py'" in command:
+        return command.replace("run_review.py'", "run_review.py --dry-run'")
     return command + " --dry-run"
 
 
