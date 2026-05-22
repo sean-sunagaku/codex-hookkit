@@ -34,7 +34,6 @@ from .outputs import (
     UserPromptSubmitHookSpecificOutput,
     UserPromptSubmitOutput,
 )
-from .payload import HookPayload
 from .policy import SecretPolicy
 from .review import ReviewMarker, request_review, run_review
 from .scaffold import codex_review_hooks, secret_guard_hook
@@ -45,7 +44,6 @@ __version__ = "0.0.3"
 
 __all__ = [
     "Decision",
-    "HookPayload",
     "PermissionRequestInput",
     "PermissionRequestDecision",
     "PermissionRequestHookSpecificOutput",

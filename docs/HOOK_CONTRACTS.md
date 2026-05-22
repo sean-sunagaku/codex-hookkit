@@ -50,13 +50,6 @@ payload = PreToolUseInput.from_stdin()
 ```
 
 This validates the incoming JSON against the matching input schema by default.
-`HookPayload` remains available as a compatibility wrapper for generic code:
-
-```python
-from codex_hookkit import HookPayload
-
-payload = HookPayload.from_model(PreToolUseInput.from_stdin())
-```
 
 Codex sends the hook payload as one JSON object on `stdin`. The exact fields are
 defined by the matching upstream input schema. `codex-hookkit` does not invent
@@ -75,14 +68,13 @@ Common fields currently include:
 - `model`
 - `transcript_path`
 
-Treat the schema as the contract. Treat compatibility helpers like
-`HookPayload.command_text()` as helpers layered on top.
+Treat the schema as the contract. Generated input models expose that contract
+directly to hook code.
 
 ## Command Extraction
 
-`SecretPolicy` can evaluate generated input models directly. The compatibility
-`HookPayload.command_text()` method performs best-effort extraction from common
-Codex tool inputs:
+`SecretPolicy` can evaluate generated input models directly. It performs
+best-effort extraction from common Codex tool inputs:
 
 - `tool_input.cmd`
 - `tool_input.command`
@@ -90,7 +82,7 @@ Codex tool inputs:
 - string `tool_input`
 
 If a future Codex tool changes the command shape, add extraction logic in
-`payload.py` and cover it with tests.
+`policy.py` and cover it with tests.
 
 ## Deny By Exit Code
 
@@ -195,5 +187,5 @@ uv build
 uv run twine check dist/*
 ```
 
-Review the schema diff carefully. If input or output shapes changed, update
-`payload.py`, `decisions.py`, tests, and this document.
+Review the schema diff carefully. If input or output shapes changed, update the
+generated-model code, `decisions.py`, tests, and this document.

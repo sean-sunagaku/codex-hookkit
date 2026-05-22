@@ -14,8 +14,7 @@ This repository uses `uv` for local development, build, and publish workflows.
 
 ```sh
 uv sync --dev
-uv run python tools/generate_pydantic_outputs.py
-git diff --exit-code -- src/codex_hookkit/inputs.py src/codex_hookkit/outputs.py
+uv run python tools/check_generated_models.py
 uv run ruff format --check .
 uv run ruff check .
 uv run pytest -q

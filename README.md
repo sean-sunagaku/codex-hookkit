@@ -90,7 +90,7 @@ The structured examples use generated Pydantic classes such as
 from the vendored Codex schemas with:
 
 ```sh
-uv run python tools/generate_pydantic_outputs.py
+uv run python tools/generate_pydantic_models.py
 ```
 
 ## CLI Helpers
@@ -232,7 +232,6 @@ The key modules are:
 - `schemas.py`: locate, load, and validate vendored Codex schemas
 - `inputs.py`: generated Pydantic classes for Codex hook inputs
 - `outputs.py`: generated Pydantic classes for Codex hook outputs
-- `payload.py`: parse hook payloads and extract command text
 - `decisions.py`: build allow / deny decisions and structured outputs
 - `policy.py`: default secret-file and token-access guard
 - `review.py`: two-step changed-code Codex review hook
@@ -246,7 +245,7 @@ See `docs/ARCHITECTURE.md` for the full design notes.
 
 ```sh
 uv sync --dev
-uv run python tools/generate_pydantic_outputs.py
+uv run python tools/generate_pydantic_models.py
 uv run ruff format .
 uv run ruff check .
 uv run pytest -q

@@ -19,7 +19,6 @@ from .inputs import (
     SubagentStopInput,
     UserPromptSubmitInput,
 )
-from .payload import HookPayload
 from .policy import SecretPolicy
 from .review import request_review, run_review
 from .scaffold import codex_review_hooks, secret_guard_hook
@@ -50,11 +49,6 @@ def build_parser() -> argparse.ArgumentParser:
         "--json-output",
         action="store_true",
         help="emit Codex hook JSON output instead of using exit code 2 + stderr for denials",
-    )
-    guard.add_argument(
-        "--no-validate",
-        action="store_true",
-        help="skip input validation against the vendored upstream schema",
     )
 
     schemas = subparsers.add_parser("schemas", help="list vendored hook schemas")
@@ -95,14 +89,12 @@ def build_parser() -> argparse.ArgumentParser:
         "request-review", help="mark that changed code should receive a Stop-hook Codex review"
     )
     request.add_argument("--state-dir", default=".codex-hookkit")
-    request.add_argument("--no-validate", action="store_true")
 
     review = subparsers.add_parser("run-review", help="run a pending Stop-hook Codex review")
     review.add_argument("--state-dir", default=".codex-hookkit")
     review.add_argument("--codex-bin", default="codex")
     review.add_argument("--timeout", type=int, default=240)
     review.add_argument("--dry-run", action="store_true", help="print the review prompt only")
-    review.add_argument("--no-validate", action="store_true")
     return parser
 
 
@@ -142,7 +134,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "request-review":
         try:
-            payload = read_input("post-tool-use", validate_schema=not args.no_validate)
+            payload = read_input("post-tool-use")
         except Exception as exc:
             return deny.stderr_exit(f"Invalid Codex hook payload: {exc}")
         request_review(payload, state_dir=args.state_dir)
@@ -150,7 +142,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "run-review":
         try:
-            payload = read_input("stop", validate_schema=not args.no_validate)
+            payload = read_input("stop")
         except Exception as exc:
             return deny.stderr_exit(f"Invalid Codex hook payload: {exc}")
         return run_review(
@@ -163,7 +155,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "guard":
         try:
-            payload = read_input(args.schema, validate_schema=not args.no_validate)
+            payload = read_input(args.schema)
         except Exception as exc:
             return deny.stderr_exit(f"Invalid Codex hook payload: {exc}")
 
@@ -188,9 +180,7 @@ def main(argv: list[str] | None = None) -> int:
     return 2
 
 
-def read_input(schema: str, *, validate_schema: bool = True) -> object:
-    if not validate_schema:
-        return HookPayload.from_stdin(schema=schema, validate_schema=False)
+def read_input(schema: str) -> object:
     return INPUT_MODELS[schema].from_stdin()
 
 

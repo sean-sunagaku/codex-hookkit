@@ -7,7 +7,7 @@
 - 出力は日本語で行う
 - schema JSON は手編集しない
 - `inputs.py` / `outputs.py` は手編集しない
-- generator は `tools/generate_pydantic_outputs.py`
+- generator は `tools/generate_pydantic_models.py`
 - examples は Python hook と実 hook config に絞る
 - payload/output JSON fixture は examples に置かない
 - runtime hook evaluation に network access を入れない
@@ -16,8 +16,7 @@
 
 ```sh
 uv sync --dev
-uv run python tools/generate_pydantic_outputs.py
-git diff --exit-code -- src/codex_hookkit/inputs.py src/codex_hookkit/outputs.py
+uv run python tools/check_generated_models.py
 uv run ruff format --check .
 uv run ruff check .
 uv run pytest -q

@@ -8,7 +8,6 @@
 
 - Hook の入力は `PreToolUseInput` などの生成 Input model で受ける
 - Hook の構造化出力は `PreToolUseOutput` などの生成 Output model で返す
-- `HookPayload` は互換用の薄い wrapper として残す
 - CLI は sample runner / scaffold / schema helper に留める
 - `examples/` は Python hook 実例と実際に使える hook config サンプルに絞る
 

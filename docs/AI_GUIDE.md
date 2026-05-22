@@ -43,7 +43,7 @@ docs/RELEASE.md
 
 ```sh
 uv sync --dev
-uv run python tools/generate_pydantic_outputs.py
+uv run python tools/check_generated_models.py
 uv run ruff format --check .
 uv run ruff check .
 uv run pytest -q
@@ -78,10 +78,10 @@ When changing schema loading:
 - add tests that cover installed and local paths when possible
 - confirm the wheel includes vendored schemas
 
-When changing payload parsing:
+When changing input handling:
 
-- edit `payload.py`
-- add tests for each supported input shape
+- edit the generated-model generator or upstream schemas, then regenerate
+- add tests for each supported input model shape
 - avoid guessing large new tool contracts without a schema or fixture
 
 When changing policy:
@@ -112,8 +112,8 @@ When changing upstream downloads:
 
 When changing JSON output:
 
-- edit the generator in `tools/generate_pydantic_outputs.py`
-- run `uv run python tools/generate_pydantic_outputs.py`
+- edit the generator in `tools/generate_pydantic_models.py`
+- run `uv run python tools/generate_pydantic_models.py`
 - keep `src/codex_hookkit/inputs.py` generated from vendored input schemas
 - keep `src/codex_hookkit/outputs.py` generated from vendored output schemas
 - keep `decisions.py` as a thin compatibility layer over generated output models

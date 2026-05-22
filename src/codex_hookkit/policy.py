@@ -8,7 +8,6 @@ from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 
 from .decisions import Decision, allow, deny
-from .payload import HookPayload
 
 
 @dataclass(frozen=True)
@@ -44,7 +43,7 @@ class SecretPolicy:
             )
         )
 
-    def evaluate(self, payload: HookPayload | object) -> Decision:
+    def evaluate(self, payload: object) -> Decision:
         command = _command_text(payload)
         if not command:
             return allow.decision()
@@ -87,11 +86,7 @@ def _split_command(command: str) -> list[str]:
         return command.split()
 
 
-def _command_text(payload: HookPayload | object) -> str:
-    command_text = getattr(payload, "command_text", None)
-    if callable(command_text):
-        return str(command_text())
-
+def _command_text(payload: object) -> str:
     tool_input = getattr(payload, "tool_input", None)
     if isinstance(tool_input, dict):
         for key in ("cmd", "command", "script"):

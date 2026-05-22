@@ -9,8 +9,7 @@ lint:
 	uv run ruff check .
 
 check-generated:
-	uv run python tools/generate_pydantic_outputs.py
-	git diff --exit-code -- src/codex_hookkit/inputs.py src/codex_hookkit/outputs.py
+	uv run python tools/check_generated_models.py
 
 test:
 	uv run pytest -q

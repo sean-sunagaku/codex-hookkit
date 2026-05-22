@@ -10,8 +10,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TextIO
 
-from .payload import HookPayload
-
 ACTIVE_ENV = "CODEX_HOOKKIT_REVIEW_ACTIVE"
 DEFAULT_STATE_DIR = ".codex-hookkit"
 DEFAULT_MARKER = "pending-review.json"
@@ -104,7 +102,7 @@ def git_lines(cwd: Path, args: list[str]) -> list[str]:
     return [line for line in result.stdout.splitlines() if line]
 
 
-def tool_succeeded(payload: HookPayload | object) -> bool:
+def tool_succeeded(payload: object) -> bool:
     response = _field(payload, "tool_response")
     if isinstance(response, dict):
         exit_code = response.get("exit_code")
@@ -114,7 +112,7 @@ def tool_succeeded(payload: HookPayload | object) -> bool:
 
 
 def request_review(
-    payload: HookPayload | object, state_dir: str | Path = DEFAULT_STATE_DIR
+    payload: object, state_dir: str | Path = DEFAULT_STATE_DIR
 ) -> ReviewMarker | None:
     """Persist a review request when a PostToolUse event leaves code changes."""
 
@@ -186,7 +184,7 @@ def review_prompt(files: list[str]) -> str:
 
 
 def run_review(
-    payload: HookPayload | object,
+    payload: object,
     *,
     state_dir: str | Path = DEFAULT_STATE_DIR,
     codex_bin: str = "codex",
@@ -246,8 +244,5 @@ def run_review(
     return 0
 
 
-def _field(payload: HookPayload | object, name: str, default: Any = None) -> Any:
-    if isinstance(payload, HookPayload):
-        if name in payload.raw:
-            return payload.raw[name]
+def _field(payload: object, name: str, default: Any = None) -> Any:
     return getattr(payload, name, default)

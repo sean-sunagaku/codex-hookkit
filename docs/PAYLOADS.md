@@ -58,7 +58,7 @@ PreToolUseOutput.allow().write()
 Regenerate them with:
 
 ```sh
-uv run python tools/generate_pydantic_outputs.py
+uv run python tools/generate_pydantic_models.py
 ```
 
 ## Common Input Fields
@@ -87,9 +87,8 @@ vendored snapshot before relying on new fields.
 
 ## Command Text
 
-`SecretPolicy` can evaluate the generated input models directly. The older
-`HookPayload.command_text()` compatibility helper extracts a command from
-common input shapes:
+`SecretPolicy` evaluates generated input models directly and extracts command
+text from common input shapes:
 
 - `tool_input.cmd`
 - `tool_input.command`

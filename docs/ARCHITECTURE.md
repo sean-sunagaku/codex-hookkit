@@ -17,7 +17,6 @@ building Codex hook guards without guessing the hook payload contract.
 ```text
 src/codex_hookkit/
   schemas.py      # schema discovery, loading, and jsonschema validation
-  payload.py      # HookPayload parsing from stdin, stream, or dict
   inputs.py       # generated Pydantic classes for schema-valid hook inputs
   outputs.py      # generated Pydantic classes for schema-valid hook outputs
   decisions.py    # compatibility allow / deny helpers over generated outputs
@@ -36,7 +35,7 @@ third_party/openai-codex-hook-schemas/
   UPSTREAM.md
 
 tools/update_codex_hook_schemas.py
-tools/generate_pydantic_outputs.py
+tools/generate_pydantic_models.py
 .codex/hooks.json
 tests/test_cli.py
 tests/test_outputs.py
@@ -94,7 +93,6 @@ Stable concepts:
 - `StructuredInput`: base class for generated, schema-validated input models.
 - `PreToolUseInput`, `PermissionRequestInput`, and other generated input
   classes: typed hook input readers.
-- `HookPayload`: compatibility wrapper for older generic policy code.
 - `SecretPolicy`: small default policy for secret-file and token access.
 - `Decision`: allowed or denied result.
 - `StructuredOutput`: base class for generated, schema-validated output models.
@@ -141,7 +139,7 @@ hand.
 Regenerate it with:
 
 ```sh
-uv run python tools/generate_pydantic_outputs.py
+uv run python tools/generate_pydantic_models.py
 ```
 
 The test suite includes an exact sync check so generated classes cannot drift
@@ -178,7 +176,6 @@ This project is a toolkit, not a full policy engine.
 Keep these boundaries in mind:
 
 - Schema validation belongs in `schemas.py`.
-- Payload normalization belongs in `payload.py`.
 - Generated Codex input models belong in `inputs.py`.
 - Generated Codex output models belong in `outputs.py`.
 - Compatibility decision helpers belong in `decisions.py`.
