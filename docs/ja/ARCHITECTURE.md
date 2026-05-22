@@ -14,6 +14,7 @@ src/codex_hookkit/
   decisions.py    # allow / deny 互換 helper
   policy.py       # 最小の SecretPolicy
   review.py       # PostToolUse/Stop を使う Codex review hook
+  trust.py        # Codex hook trust state 書き込み
   upstream.py     # schema snapshot downloader
   scaffold.py     # hook skeleton / config 生成
   cli.py          # sample runner と補助 CLI

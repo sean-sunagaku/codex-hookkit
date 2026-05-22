@@ -53,6 +53,15 @@ examples/codex_review_hooks.json
 実際に hook を設定するサンプルは `examples/hooks.json` にあります。
 レビュー hook だけを使いたい場合は `examples/codex_review_hooks.json` を見てください。
 
+Codex の hook trust state を `~/.codex/config.toml` に書き込む場合は:
+
+```sh
+codex-hookkit trust-hooks --hooks-path .codex/hooks.json
+```
+
+このコマンドは、全 command hook について `[hooks.state."..."]` の
+`trusted_hash` を upsert します。書き込み前に確認したい場合は `--dry-run` を使います。
+
 ## 開発
 
 ```sh

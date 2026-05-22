@@ -22,6 +22,7 @@ src/codex_hookkit/
   decisions.py    # compatibility allow / deny helpers over generated outputs
   policy.py       # minimal SecretPolicy default guard
   review.py       # changed-code marker and Stop-hook Codex review runner
+  trust.py        # Codex hook trusted-hash writer
   upstream.py     # importable schema snapshot downloader
   scaffold.py     # hook skeleton generation
   cli.py          # sample runner and project setup helpers
@@ -118,6 +119,7 @@ names, and selected token environment names.
 - `schemas`: schema discovery
 - `scaffold`: hook skeleton generation
 - `download-schemas`: upstream schema snapshot download
+- `trust-hooks`: write hook trusted hashes into Codex config.toml
 
 `codex-hookkit guard` reads one JSON payload from `stdin`.
 
@@ -181,6 +183,7 @@ Keep these boundaries in mind:
 - Compatibility decision helpers belong in `decisions.py`.
 - Security rules belong in `policy.py` or caller-owned policies.
 - Changed-code review orchestration belongs in `review.py`.
+- Codex hook trust-state hashing and config writes belong in `trust.py`.
 - Schema download belongs in `upstream.py`.
 - Skeleton text belongs in `scaffold.py`.
 - CLI argument parsing and sample runner behavior belong in `cli.py`.

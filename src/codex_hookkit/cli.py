@@ -23,6 +23,7 @@ from .policy import SecretPolicy
 from .review import request_review, run_review
 from .scaffold import codex_review_hooks, secret_guard_hook
 from .schemas import available_schemas
+from .trust import hook_trust_entries, write_hook_trusts
 from .upstream import DEFAULT_DEST, download_schema_snapshot
 
 INPUT_MODELS = {
@@ -85,6 +86,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="destination directory for the schema snapshot",
     )
 
+    trust = subparsers.add_parser(
+        "trust-hooks", help="write Codex hook trusted hashes into config.toml"
+    )
+    trust.add_argument(
+        "--hooks-path",
+        type=Path,
+        default=Path(".codex/hooks.json"),
+        help="hooks.json file to trust",
+    )
+    trust.add_argument(
+        "--config",
+        type=Path,
+        default=Path.home() / ".codex" / "config.toml",
+        help="Codex config.toml to update",
+    )
+    trust.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="print entries without writing config.toml",
+    )
+
     request = subparsers.add_parser(
         "request-review", help="mark that changed code should receive a Stop-hook Codex review"
     )
@@ -130,6 +152,19 @@ def main(argv: list[str] | None = None) -> int:
             f"downloaded {snapshot.schema_count} schema files from "
             f"{snapshot.repo}@{snapshot.commit} to {snapshot.destination}"
         )
+        return 0
+
+    if args.command == "trust-hooks":
+        try:
+            if args.dry_run:
+                entries = hook_trust_entries(args.hooks_path)
+                for entry in entries:
+                    print(f"{entry.key} {entry.current_hash}")
+                return 0
+            result = write_hook_trusts(args.hooks_path, config_path=args.config)
+        except Exception as exc:
+            return deny.stderr_exit(f"Failed to write Codex hook trust state: {exc}")
+        print(f"wrote {result.count} hook trust entries to {result.config_path}")
         return 0
 
     if args.command == "request-review":

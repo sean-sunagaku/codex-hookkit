@@ -31,6 +31,7 @@ Release や publish を扱う場合は `docs/RELEASE.md` も読んでくださ�
 - core は import-first に保ち、CLI は sample runner / scaffold / schema helper に留める。
 - Codex review hook は `PostToolUse` で marker を置き、`Stop` で 1 回だけ実行する。
 - nested review は `CODEX_HOOKKIT_REVIEW_ACTIVE=1` で再帰実行を防ぐ。
+- hook trust state は `codex-hookkit trust-hooks --hooks-path .codex/hooks.json` で `~/.codex/config.toml` に書き込む。
 - `exit 2 + stderr` による deny 動作を壊さない。
 - JSON output helper は vendored output schema で validation する。
 

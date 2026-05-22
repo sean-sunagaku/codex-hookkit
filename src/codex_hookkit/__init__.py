@@ -38,12 +38,15 @@ from .policy import SecretPolicy
 from .review import ReviewMarker, request_review, run_review
 from .scaffold import codex_review_hooks, secret_guard_hook
 from .schemas import SchemaName, available_schemas, load_schema, schema_path, validate
+from .trust import HookTrustEntry, HookTrustWriteResult, hook_trust_entries, write_hook_trusts
 from .upstream import SchemaSnapshot, download_schema_snapshot
 
 __version__ = "0.0.3"
 
 __all__ = [
     "Decision",
+    "HookTrustEntry",
+    "HookTrustWriteResult",
     "PermissionRequestInput",
     "PermissionRequestDecision",
     "PermissionRequestHookSpecificOutput",
@@ -83,6 +86,7 @@ __all__ = [
     "deny",
     "dump_json",
     "download_schema_snapshot",
+    "hook_trust_entries",
     "load_schema",
     "request_review",
     "ReviewMarker",
@@ -90,4 +94,5 @@ __all__ = [
     "schema_path",
     "secret_guard_hook",
     "validate",
+    "write_hook_trusts",
 ]

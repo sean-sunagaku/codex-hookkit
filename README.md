@@ -127,6 +127,15 @@ Or from the CLI:
 codex-hookkit download-schemas --dest third_party/openai-codex-hook-schemas
 ```
 
+Write Codex hook trust state for all command hooks in a `hooks.json` file:
+
+```sh
+codex-hookkit trust-hooks --hooks-path .codex/hooks.json
+```
+
+This upserts `[hooks.state."..."] trusted_hash = "..."` entries in
+`~/.codex/config.toml`. Use `--dry-run` to print the entries without writing.
+
 ## Python API
 
 ```python
@@ -235,6 +244,7 @@ The key modules are:
 - `decisions.py`: build allow / deny decisions and structured outputs
 - `policy.py`: default secret-file and token-access guard
 - `review.py`: two-step changed-code Codex review hook
+- `trust.py`: compute and write Codex hook trusted hashes
 - `upstream.py`: download pinned upstream schema snapshots
 - `scaffold.py`: generate small hook skeletons
 - `cli.py`: sample runner and project setup helpers
