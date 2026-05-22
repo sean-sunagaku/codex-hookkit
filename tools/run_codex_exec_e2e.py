@@ -133,9 +133,7 @@ def prepare_codex_home(home: Path, repo: Path, auth_src: Path) -> None:
     result = subprocess.run(
         [
             sys.executable,
-            "-m",
-            "codex_hookkit.cli",
-            "trust-hooks",
+            "tools/trust_codex_hooks.py",
             "--hooks-path",
             str(repo / ".codex" / "hooks.json"),
             "--config",

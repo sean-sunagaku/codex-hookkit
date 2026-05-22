@@ -87,16 +87,16 @@ vendored snapshot before relying on new fields.
 
 ## Command Text
 
-`SecretPolicy` evaluates generated input models directly and extracts command
-text from common input shapes:
+Policy logic belongs to the hook file or the consuming project. When a hook
+needs command text, extract it defensively from common input shapes:
 
 - `tool_input.cmd`
 - `tool_input.command`
 - `tool_input.script`
 - string `tool_input`
 
-This is a best-effort helper for command-like tools. Policy code should still
-be written defensively because not every hook event is command-shaped.
+Not every hook event is command-shaped, so policy code should tolerate missing
+or differently shaped `tool_input` values.
 
 ## Blocking With Exit Status
 

@@ -65,13 +65,10 @@ codex-hookkit guard --schema pre-tool-use
 codex-hookkit guard --schema pre-tool-use --json-output
 codex-hookkit scaffold --output hooks/secret_guard.py
 codex-hookkit init --output-dir .
-codex-hookkit scaffold --kind codex-review-hooks --output hooks.json
 codex-hookkit schemas --direction both
-codex-hookkit download-schemas --dest third_party/openai-codex-hook-schemas
-codex-hookkit trust-hooks --hooks-path .codex/hooks.json
 ```
 
-Use `guard` as a minimal sample or generic runner. Put real product-specific behavior in a Python hook file that imports `codex_hookkit`.
+Use `guard` as a minimal sample or generic runner. Put real product-specific behavior in a Python hook file that imports `codex_hookkit`. Use repository tools for schema updates and local trust-state writes.
 
 ## Hook Config Shape
 
@@ -99,7 +96,7 @@ A command hook config uses Codex's hook JSON shape:
 After editing a command hook, rewrite trust state:
 
 ```sh
-uv run codex-hookkit trust-hooks --hooks-path .codex/hooks.json
+uv run python tools/trust_codex_hooks.py --hooks-path .codex/hooks.json
 ```
 
 Codex records trust state by absolute hook file path and command hash, so do not commit machine-local `[hooks.state]` entries.
@@ -152,8 +149,8 @@ This means the hook fired correctly even if stdout only shows the assistant summ
 
 The review hook flow is two-step:
 
-- `request-review`: `PostToolUse` hook that writes a pending marker when code changes
-- `run-review`: `Stop` hook that consumes the marker and runs one nested `codex exec` review
+- `examples/python_hooks/codex_review/request_review.py`: `PostToolUse` hook that writes a pending marker when code changes
+- `examples/python_hooks/codex_review/run_review.py`: `Stop` hook that consumes the marker and runs one nested `codex exec` review
 
 Always keep this recursion guard in nested review runs:
 

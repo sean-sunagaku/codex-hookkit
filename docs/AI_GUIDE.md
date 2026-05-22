@@ -34,7 +34,8 @@ docs/RELEASE.md
 - Do not hand-edit vendored schema JSON files.
 - Update schema JSON through `tools/update_codex_hook_schemas.py`.
 - Keep the core API import-first. The CLI is a sample runner and helper.
-- Keep product-specific security rules out of the default policy.
+- Keep policy rules out of the stable package API; put samples in `examples/`
+  and product rules in consuming hook files.
 - Validate hook input and generated hook output whenever practical.
 - Preserve `exit 2 + stderr` as the default blocking behavior.
 - Keep package imports under `codex_hookkit`.
@@ -86,15 +87,16 @@ When changing input handling:
 - add tests for each supported input model shape
 - avoid guessing large new tool contracts without a schema or fixture
 
-When changing policy:
+When changing sample policy:
 
-- edit `src/codex_hookkit/core/policy.py`
-- add focused CLI tests
-- document the rule in `README.md` or `docs/ARCHITECTURE.md`
+- edit `examples/secret_guard_policy.py` or the generated skeleton text
+- add focused CLI or example tests
+- document the sample behavior in `README.md` or `docs/ARCHITECTURE.md`
 
-When changing Codex review hooks:
+When changing Codex review examples:
 
-- edit `src/codex_hookkit/core/review.py` for marker, changed-file, or nested Codex behavior
+- edit `examples/python_hooks/codex_review/review_helpers.py` for marker,
+  changed-file, or nested Codex behavior
 - keep `PostToolUse` cheap; it should mark pending review, not run review
 - keep nested review protected by `CODEX_HOOKKIT_REVIEW_ACTIVE`
 - add tests in `tests/test_review.py`
@@ -102,14 +104,13 @@ When changing Codex review hooks:
 
 When changing scaffolding:
 
-- edit `src/codex_hookkit/core/scaffold.py`
+- edit `src/codex_hookkit/cli/_scaffold.py`
 - keep generated files short and import-first
 - add CLI tests for generated output
 
 When changing upstream downloads:
 
-- edit `src/codex_hookkit/core/upstream.py`
-- keep `tools/update_codex_hook_schemas.py` as a thin wrapper
+- edit `tools/update_codex_hook_schemas.py`
 - avoid adding runtime network calls to hook evaluation
 
 When changing JSON output:

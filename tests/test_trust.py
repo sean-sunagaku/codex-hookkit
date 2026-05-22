@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
 from pathlib import Path
 
-from codex_hookkit.core.trust import HookTrustEntry, hook_trust_entries, upsert_hook_trust_state
-
 ROOT = Path(__file__).resolve().parents[1]
+TRUST_TOOL = ROOT / "tools" / "trust_codex_hooks.py"
+SPEC = importlib.util.spec_from_file_location("trust_codex_hooks_tool", TRUST_TOOL)
+assert SPEC is not None and SPEC.loader is not None
+trust_tool = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = trust_tool
+SPEC.loader.exec_module(trust_tool)
+
+HookTrustEntry = trust_tool.HookTrustEntry
+hook_trust_entries = trust_tool.hook_trust_entries
+upsert_hook_trust_state = trust_tool.upsert_hook_trust_state
 
 
 def test_project_hooks_hashes_match_codex_current_hashes() -> None:
@@ -22,10 +31,10 @@ def test_project_hooks_hashes_match_codex_current_hashes() -> None:
         "sha256:849fb1a20cd327e07a47542bf0700297c973eb825787964290427edd1fdb70a3"
     )
     assert entries["PostToolUse"].current_hash == (
-        "sha256:5142199abb5ecf88354783e514ba4d159482ffb118b719e23d6e6b2ddfebe93c"
+        "sha256:cbe36f75d48efc5d8ff1bb7be3ac50d66292656fb4dff7410af6c9d63a3f239c"
     )
     assert entries["Stop"].current_hash == (
-        "sha256:d5b744943bf9720188e0b4e0dbd43897a6c997e9b268f01f9aff835f764f1136"
+        "sha256:b2e45579fa9a8c05b8ed219b9c875fe6fc4d45a534b44421e8e7e7bd12c5398c"
     )
 
 
@@ -73,7 +82,10 @@ def test_trust_hooks_cli_writes_all_entries(tmp_path: Path) -> None:
                             "hooks": [
                                 {
                                     "type": "command",
-                                    "command": "uv run python -m codex_hookkit.cli run-review",
+                                    "command": (
+                                        "uv run python "
+                                        "examples/python_hooks/codex_review/run_review.py"
+                                    ),
                                     "timeout": 300,
                                 }
                             ],
@@ -88,9 +100,7 @@ def test_trust_hooks_cli_writes_all_entries(tmp_path: Path) -> None:
     result = subprocess.run(
         [
             sys.executable,
-            "-m",
-            "codex_hookkit.cli",
-            "trust-hooks",
+            "tools/trust_codex_hooks.py",
             "--hooks-path",
             str(hooks_path),
             "--config",

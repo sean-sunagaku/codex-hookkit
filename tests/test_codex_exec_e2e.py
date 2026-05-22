@@ -49,9 +49,7 @@ def codex_home(tmp_path: Path) -> Path:
     result = subprocess.run(
         [
             sys.executable,
-            "-m",
-            "codex_hookkit.cli",
-            "trust-hooks",
+            "tools/trust_codex_hooks.py",
             "--hooks-path",
             str(REPO_ROOT / ".codex" / "hooks.json"),
             "--config",

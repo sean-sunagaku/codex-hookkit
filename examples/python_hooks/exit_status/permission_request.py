@@ -3,12 +3,18 @@
 
 from __future__ import annotations
 
-from codex_hookkit import PermissionRequestInput, SecretPolicy, deny
+import sys
+from pathlib import Path
+
+from codex_hookkit import PermissionRequestInput, deny
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from secret_guard_policy import SecretGuardPolicy  # noqa: E402
 
 
 def main() -> int:
     payload = PermissionRequestInput.from_stdin()
-    decision = SecretPolicy.default().evaluate(payload)
+    decision = SecretGuardPolicy.default().evaluate(payload)
     if decision.denied:
         return deny.stderr_exit(decision.reason)
     return 0

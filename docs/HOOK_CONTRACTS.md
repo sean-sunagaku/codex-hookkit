@@ -73,16 +73,16 @@ directly to hook code.
 
 ## Command Extraction
 
-`SecretPolicy` can evaluate generated input models directly. It performs
-best-effort extraction from common Codex tool inputs:
+The package does not ship a public policy engine. Hook-owned policy code should
+extract command text defensively from common Codex tool inputs:
 
 - `tool_input.cmd`
 - `tool_input.command`
 - `tool_input.script`
 - string `tool_input`
 
-If a future Codex tool changes the command shape, add extraction logic in
-`policy.py` and cover it with tests.
+If a future Codex tool changes the command shape, update the consuming hook or
+the relevant example and cover it with tests.
 
 ## Deny By Exit Code
 
@@ -163,14 +163,6 @@ Update to the latest upstream Codex schema snapshot with:
 
 ```sh
 uv run python tools/update_codex_hook_schemas.py
-```
-
-The same operation is importable:
-
-```python
-from codex_hookkit import download_schema_snapshot
-
-snapshot = download_schema_snapshot("third_party/openai-codex-hook-schemas")
 ```
 
 Or pin a specific upstream commit:

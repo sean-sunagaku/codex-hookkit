@@ -8,12 +8,14 @@ a stderr reason.
 
 from __future__ import annotations
 
-from codex_hookkit import PreToolUseInput, SecretPolicy, deny
+from secret_guard_policy import SecretGuardPolicy
+
+from codex_hookkit import PreToolUseInput, deny
 
 
 def main() -> int:
     payload = PreToolUseInput.from_stdin()
-    decision = SecretPolicy.default().evaluate(payload)
+    decision = SecretGuardPolicy.default().evaluate(payload)
 
     if decision.denied:
         return deny.stderr_exit(decision.reason)

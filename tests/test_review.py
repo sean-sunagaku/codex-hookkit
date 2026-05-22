@@ -1,12 +1,25 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
 from pathlib import Path
 
-from codex_hookkit import PostToolUseInput, StopInput, request_review, run_review
-from codex_hookkit.core.review import ACTIVE_ENV, marker_path
+from codex_hookkit import PostToolUseInput, StopInput
+
+ROOT = Path(__file__).resolve().parents[1]
+HELPERS_PATH = ROOT / "examples" / "python_hooks" / "codex_review" / "review_helpers.py"
+SPEC = importlib.util.spec_from_file_location("codex_review_helpers", HELPERS_PATH)
+assert SPEC is not None and SPEC.loader is not None
+review_helpers = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = review_helpers
+SPEC.loader.exec_module(review_helpers)
+
+ACTIVE_ENV = review_helpers.ACTIVE_ENV
+marker_path = review_helpers.marker_path
+request_review = review_helpers.request_review
+run_review = review_helpers.run_review
 
 
 def init_repo(path: Path) -> None:
@@ -90,14 +103,14 @@ def test_review_cli_dry_run(tmp_path: Path) -> None:
     stop_payload_text = json.dumps(stop_payload(tmp_path))
 
     request_result = subprocess.run(
-        [sys.executable, "-m", "codex_hookkit.cli", "request-review"],
+        [sys.executable, "examples/python_hooks/codex_review/request_review.py"],
         input=request_payload,
         text=True,
         capture_output=True,
         check=False,
     )
     review_result = subprocess.run(
-        [sys.executable, "-m", "codex_hookkit.cli", "run-review", "--dry-run"],
+        [sys.executable, "examples/python_hooks/codex_review/run_review.py", "--dry-run"],
         input=stop_payload_text,
         text=True,
         capture_output=True,

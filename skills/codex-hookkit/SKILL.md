@@ -1,6 +1,6 @@
 ---
 name: codex-hookkit
-description: Build, scaffold, debug, or verify Python Codex hooks with the codex-hookkit library. Use when a task involves Codex hook payload schemas, generated input/output models, PreToolUse or PermissionRequest guards, hook trust state, codex exec hook E2E checks, or updating the vendored openai/codex hook schema snapshot.
+description: Build, scaffold, debug, or verify Python Codex hooks with the codex-hookkit library. Use when a task involves Codex hook payload schemas, generated input/output models, PreToolUse or PermissionRequest guards, hook examples, codex exec hook E2E checks, or updating the vendored openai/codex hook schema snapshot.
 ---
 
 # Codex Hookkit
@@ -13,7 +13,7 @@ Use this skill when working on Python hooks built with `codex-hookkit`.
 2. Read hook input with generated models such as `PreToolUseInput.from_stdin()`.
 3. Return structured output with generated models such as `PreToolUseOutput.deny(...).write()` when the hook supports JSON output.
 4. Use `exit 2` plus stderr only for the simple deny path or examples that intentionally demonstrate exit-status mode.
-5. Keep project-specific policy outside the default `SecretPolicy`; add product rules in the consuming hook file.
+5. Keep policy outside the stable package API; add product rules in the consuming hook file.
 6. Verify with unit tests first, then run the real `codex exec` smoke path when auth is available.
 
 ## Implementation Pattern
@@ -21,26 +21,30 @@ Use this skill when working on Python hooks built with `codex-hookkit`.
 Prefer import-first hook files over putting real behavior in the generic CLI runner:
 
 ```python
-from codex_hookkit import PreToolUseInput, PreToolUseOutput, SecretPolicy
+from codex_hookkit import PreToolUseInput, PreToolUseOutput
 
 
 def main() -> int:
     payload = PreToolUseInput.from_stdin()
-    decision = SecretPolicy.default().evaluate(payload)
+    reason = blocked_reason(payload)
 
-    if decision.denied:
-        PreToolUseOutput.deny(decision.reason).write()
+    if reason:
+        PreToolUseOutput.deny(reason).write()
     else:
         PreToolUseOutput.allow().write()
 
     return 0
 
 
+def blocked_reason(payload: PreToolUseInput) -> str:
+    return ""
+
+
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-Use the CLI for samples, scaffolding, schema listing, trust writing, and debug smoke checks.
+Use the CLI for samples, scaffolding, schema listing, and debug smoke checks.
 
 ## Commands
 
@@ -49,7 +53,7 @@ Use these from the repository root:
 ```sh
 uv run codex-hookkit scaffold --output hooks/secret_guard.py
 uv run codex-hookkit schemas --direction both
-uv run codex-hookkit trust-hooks --hooks-path .codex/hooks.json
+uv run python tools/trust_codex_hooks.py --hooks-path .codex/hooks.json
 make codex-exec-e2e
 make codex-exec-debug
 make check
@@ -60,14 +64,14 @@ make check
 ## Editing This Repository
 
 - Keep generated input/output models in `src/codex_hookkit/core/inputs.py` and `src/codex_hookkit/core/outputs.py` generated-only.
-- Treat `src/codex_hookkit/core/` as the implementation package and `src/codex_hookkit/cli/` as the command package.
-- Do not add top-level implementation modules such as `src/codex_hookkit/trust.py`; keep implementation under `core/`.
+- Treat `src/codex_hookkit/core/` as the stable implementation package and `src/codex_hookkit/cli/` as the small command package.
+- Do not add package modules for policy, trust, review, or upstream downloads; keep those in `examples/` or `tools/`.
 - Regenerate models with `uv run python tools/generate_pydantic_models.py`.
 - Check generated-model drift with `uv run python tools/check_generated_models.py`.
 - Update upstream schema snapshots only through `tools/update_codex_hook_schemas.py`.
 - Do not add runtime network access to hook evaluation.
-- Preserve the Codex review hook recursion guard: `CODEX_HOOKKIT_REVIEW_ACTIVE=1`.
-- Preserve the hook trust workflow: `codex-hookkit trust-hooks --hooks-path .codex/hooks.json`.
+- Preserve the Codex review hook recursion guard in the example: `CODEX_HOOKKIT_REVIEW_ACTIVE=1`.
+- Preserve the repository trust helper: `uv run python tools/trust_codex_hooks.py --hooks-path .codex/hooks.json`.
 
 ## References
 
