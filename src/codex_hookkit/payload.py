@@ -51,6 +51,20 @@ class HookPayload:
             validate(data, schema, direction="input")
         return cls(raw=data, schema=schema)
 
+    @classmethod
+    def from_model(cls, model: Any) -> HookPayload:
+        """Build a compatibility payload wrapper from a generated input model."""
+
+        schema = getattr(model, "schema", "")
+        if not isinstance(schema, str) or not schema:
+            raise TypeError("model must expose a non-empty schema class variable")
+        if not hasattr(model, "to_dict"):
+            raise TypeError("model must expose to_dict()")
+        data = model.to_dict()
+        if not isinstance(data, dict):
+            raise TypeError("model.to_dict() must return a dict")
+        return cls(raw=data, schema=schema)
+
     @property
     def hook_event_name(self) -> str:
         return str(self.raw.get("hook_event_name", ""))

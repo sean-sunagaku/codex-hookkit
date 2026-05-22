@@ -1,9 +1,0 @@
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PermissionRequest",
-    "decision": {
-      "behavior": "deny",
-      "message": "Blocked direct secret file access."
-    }
-  }
-}

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""PostToolUse hook using structured JSON output."""
+"""PostToolUse hook using typed input and structured output."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, PostToolUseOutput
+from codex_hookkit import PostToolUseInput, PostToolUseOutput
 
 
 def main() -> int:
-    HookPayload.from_stdin(schema="post-tool-use")
+    PostToolUseInput.from_stdin()
     PostToolUseOutput.minimal().write()
     return 0
 

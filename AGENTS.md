@@ -25,6 +25,7 @@ Release や publish を扱う場合は `docs/RELEASE.md` も読んでくださ�
 - PyPI name は `codex-hookkit`、Python package は `codex_hookkit` のままにする。
 - 上流 schema は `third_party/openai-codex-hook-schemas/generated` に vendor snapshot として置く。
 - schema JSON は手編集せず、`tools/update_codex_hook_schemas.py` 経由で更新する。
+- generated input/output model は `tools/generate_pydantic_outputs.py` 経由で更新する。
 - runtime hook evaluation に不要な network access を入れない。
 - default policy は汎用的な secret guard に留め、プロダクト固有ルールを混ぜない。
 - core は import-first に保ち、CLI は sample runner / scaffold / schema helper に留める。
@@ -38,6 +39,7 @@ Release や publish を扱う場合は `docs/RELEASE.md` も読んでくださ�
 ```sh
 uv sync --dev
 uv run python tools/generate_pydantic_outputs.py
+git diff --exit-code -- src/codex_hookkit/inputs.py src/codex_hookkit/outputs.py
 uv run ruff format --check .
 uv run ruff check .
 uv run pytest -q

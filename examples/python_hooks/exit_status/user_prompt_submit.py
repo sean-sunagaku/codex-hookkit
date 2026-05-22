@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""UserPromptSubmit hook using exit status."""
+"""UserPromptSubmit hook using typed input and exit status."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload
+from codex_hookkit import UserPromptSubmitInput
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="user-prompt-submit")
-    _ = payload.raw["prompt"]
+    UserPromptSubmitInput.from_stdin()
     return 0
 
 

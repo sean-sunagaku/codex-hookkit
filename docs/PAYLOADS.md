@@ -17,9 +17,9 @@ Codex
 Read it with:
 
 ```python
-from codex_hookkit import HookPayload
+from codex_hookkit import PreToolUseInput
 
-payload = HookPayload.from_stdin(schema="pre-tool-use")
+payload = PreToolUseInput.from_stdin()
 ```
 
 The payload shape is fixed by the upstream generated input schema for that hook
@@ -31,23 +31,8 @@ permission-request.command.input.schema.json
 post-tool-use.command.input.schema.json
 ```
 
-`codex-hookkit` exposes convenience accessors, but those accessors are not the
-source of truth. The schema is.
-
-Minimal validated examples live in `examples/`:
-
-```text
-examples/permission_request_payload.json
-examples/post_compact_payload.json
-examples/post_tool_use_payload.json
-examples/pre_compact_payload.json
-examples/pre_tool_use_payload.json
-examples/session_start_payload.json
-examples/stop_payload.json
-examples/subagent_start_payload.json
-examples/subagent_stop_payload.json
-examples/user_prompt_submit_payload.json
-```
+`codex-hookkit` exposes generated Pydantic input models, but those models are
+generated from the schema. The schema remains the source of truth.
 
 Minimal Python hook files live in:
 
@@ -61,11 +46,12 @@ Use `structured_output` when a hook should write a schema-valid JSON response
 to stdout.
 
 The structured-output examples use Pydantic models generated from the vendored
-Codex output schemas:
+Codex input and output schemas:
 
 ```python
-from codex_hookkit import PreToolUseOutput
+from codex_hookkit import PreToolUseInput, PreToolUseOutput
 
+payload = PreToolUseInput.from_stdin()
 PreToolUseOutput.allow().write()
 ```
 
@@ -101,7 +87,9 @@ vendored snapshot before relying on new fields.
 
 ## Command Text
 
-`HookPayload.command_text()` extracts a command from common input shapes:
+`SecretPolicy` can evaluate the generated input models directly. The older
+`HookPayload.command_text()` compatibility helper extracts a command from
+common input shapes:
 
 - `tool_input.cmd`
 - `tool_input.command`
@@ -154,24 +142,8 @@ output = deny.pre_tool_use_json("Blocked direct secret file access: .env.")
 
 The builders validate their result before returning it.
 
-Minimal validated output examples live in `examples/`:
-
-```text
-examples/permission_request_allow.json
-examples/permission_request_deny.json
-examples/permission_request_output.json
-examples/post_compact_output.json
-examples/post_tool_use_output.json
-examples/pre_compact_output.json
-examples/pre_tool_use_allow.json
-examples/pre_tool_use_deny.json
-examples/pre_tool_use_output.json
-examples/session_start_output.json
-examples/stop_output.json
-examples/subagent_start_output.json
-examples/subagent_stop_output.json
-examples/user_prompt_submit_output.json
-```
+Python examples live under `examples/python_hooks/`. Hook configuration samples
+live in `examples/hooks.json` and `examples/codex_review_hooks.json`.
 
 ## What Is Fixed
 

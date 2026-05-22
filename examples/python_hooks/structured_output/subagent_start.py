@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""SubagentStart hook using structured JSON output."""
+"""SubagentStart hook using typed input and structured output."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, SubagentStartOutput
+from codex_hookkit import SubagentStartInput, SubagentStartOutput
 
 
 def main() -> int:
-    HookPayload.from_stdin(schema="subagent-start")
+    SubagentStartInput.from_stdin()
     SubagentStartOutput.minimal().write()
     return 0
 

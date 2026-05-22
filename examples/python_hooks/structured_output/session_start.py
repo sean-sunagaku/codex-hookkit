@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""SessionStart hook using structured JSON output."""
+"""SessionStart hook using typed input and structured output."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, SessionStartOutput
+from codex_hookkit import SessionStartInput, SessionStartOutput
 
 
 def main() -> int:
-    HookPayload.from_stdin(schema="session-start")
+    SessionStartInput.from_stdin()
     SessionStartOutput.minimal().write()
     return 0
 

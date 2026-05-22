@@ -8,11 +8,11 @@ a stderr reason.
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, SecretPolicy, deny
+from codex_hookkit import PreToolUseInput, SecretPolicy, deny
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="pre-tool-use")
+    payload = PreToolUseInput.from_stdin()
     decision = SecretPolicy.default().evaluate(payload)
 
     if decision.denied:

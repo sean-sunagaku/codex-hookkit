@@ -44,8 +44,8 @@ class SecretPolicy:
             )
         )
 
-    def evaluate(self, payload: HookPayload) -> Decision:
-        command = payload.command_text()
+    def evaluate(self, payload: HookPayload | object) -> Decision:
+        command = _command_text(payload)
         if not command:
             return allow.decision()
 
@@ -85,3 +85,19 @@ def _split_command(command: str) -> list[str]:
         return shlex.split(command)
     except ValueError:
         return command.split()
+
+
+def _command_text(payload: HookPayload | object) -> str:
+    command_text = getattr(payload, "command_text", None)
+    if callable(command_text):
+        return str(command_text())
+
+    tool_input = getattr(payload, "tool_input", None)
+    if isinstance(tool_input, dict):
+        for key in ("cmd", "command", "script"):
+            value = tool_input.get(key)
+            if isinstance(value, str):
+                return value
+    if isinstance(tool_input, str):
+        return tool_input
+    return ""

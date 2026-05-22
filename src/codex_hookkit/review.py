@@ -8,7 +8,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TextIO
+from typing import Any, TextIO
 
 from .payload import HookPayload
 
@@ -104,8 +104,8 @@ def git_lines(cwd: Path, args: list[str]) -> list[str]:
     return [line for line in result.stdout.splitlines() if line]
 
 
-def tool_succeeded(payload: HookPayload) -> bool:
-    response = payload.raw.get("tool_response")
+def tool_succeeded(payload: HookPayload | object) -> bool:
+    response = _field(payload, "tool_response")
     if isinstance(response, dict):
         exit_code = response.get("exit_code")
         if isinstance(exit_code, int):
@@ -114,29 +114,30 @@ def tool_succeeded(payload: HookPayload) -> bool:
 
 
 def request_review(
-    payload: HookPayload, state_dir: str | Path = DEFAULT_STATE_DIR
+    payload: HookPayload | object, state_dir: str | Path = DEFAULT_STATE_DIR
 ) -> ReviewMarker | None:
     """Persist a review request when a PostToolUse event leaves code changes."""
 
     if (
         is_review_active()
-        or payload.hook_event_name != "PostToolUse"
+        or _field(payload, "hook_event_name") != "PostToolUse"
         or not tool_succeeded(payload)
     ):
         return None
 
-    files = code_files(changed_files(payload.cwd), state_dir)
+    cwd = str(_field(payload, "cwd", ""))
+    files = code_files(changed_files(cwd), state_dir)
     if not files:
         return None
 
     marker = ReviewMarker(
-        cwd=payload.cwd,
+        cwd=cwd,
         files=files,
-        session_id=str(payload.raw.get("session_id", "")),
-        turn_id=str(payload.raw.get("turn_id", "")),
-        tool_name=payload.tool_name,
+        session_id=str(_field(payload, "session_id", "")),
+        turn_id=str(_field(payload, "turn_id", "")),
+        tool_name=str(_field(payload, "tool_name", "")),
     )
-    path = marker_path(payload.cwd, state_dir)
+    path = marker_path(cwd, state_dir)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(marker.__dict__, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return marker
@@ -185,7 +186,7 @@ def review_prompt(files: list[str]) -> str:
 
 
 def run_review(
-    payload: HookPayload,
+    payload: HookPayload | object,
     *,
     state_dir: str | Path = DEFAULT_STATE_DIR,
     codex_bin: str = "codex",
@@ -201,18 +202,19 @@ def run_review(
 
     if (
         is_review_active()
-        or payload.hook_event_name != "Stop"
-        or payload.raw.get("stop_hook_active")
+        or _field(payload, "hook_event_name") != "Stop"
+        or _field(payload, "stop_hook_active")
     ):
         return 0
 
-    marker = load_marker(payload.cwd, state_dir)
+    cwd = str(_field(payload, "cwd", ""))
+    marker = load_marker(cwd, state_dir)
     if marker is None:
         return 0
 
-    files = code_files(changed_files(payload.cwd), state_dir)
+    files = code_files(changed_files(cwd), state_dir)
     if not files:
-        clear_marker(payload.cwd, state_dir)
+        clear_marker(cwd, state_dir)
         return 0
 
     prompt = review_prompt(files)
@@ -220,9 +222,9 @@ def run_review(
         print(prompt, file=stdout)
         return 0
 
-    clear_marker(payload.cwd, state_dir)
+    clear_marker(cwd, state_dir)
     env = {**os.environ, ACTIVE_ENV: "1"}
-    command = [codex_bin, "exec", "--disable", "unified_exec", "--cd", payload.cwd, prompt]
+    command = [codex_bin, "exec", "--disable", "unified_exec", "--cd", cwd, prompt]
     try:
         result = subprocess.run(
             command,
@@ -242,3 +244,10 @@ def run_review(
     if result.stderr:
         print(result.stderr, file=stderr, end="" if result.stderr.endswith("\n") else "\n")
     return 0
+
+
+def _field(payload: HookPayload | object, name: str, default: Any = None) -> Any:
+    if isinstance(payload, HookPayload):
+        if name in payload.raw:
+            return payload.raw[name]
+    return getattr(payload, name, default)

@@ -63,8 +63,8 @@ def test_scaffold_outputs_import_first_hook() -> None:
         check=False,
     )
     assert result.returncode == 0
-    assert "from codex_hookkit import HookPayload, SecretPolicy, deny" in result.stdout
-    assert "HookPayload.from_stdin(schema='pre-tool-use')" in result.stdout
+    assert "from codex_hookkit import PreToolUseInput, SecretPolicy, deny" in result.stdout
+    assert "PreToolUseInput.from_stdin()" in result.stdout
 
 
 def test_scaffold_outputs_codex_review_hooks() -> None:

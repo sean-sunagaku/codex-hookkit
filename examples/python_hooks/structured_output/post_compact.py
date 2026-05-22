@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""PostCompact hook using structured JSON output."""
+"""PostCompact hook using typed input and structured output."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, PostCompactOutput
+from codex_hookkit import PostCompactInput, PostCompactOutput
 
 
 def main() -> int:
-    HookPayload.from_stdin(schema="post-compact")
+    PostCompactInput.from_stdin()
     PostCompactOutput.minimal().write()
     return 0
 

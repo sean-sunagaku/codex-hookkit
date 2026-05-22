@@ -10,17 +10,17 @@ def secret_guard_hook(schema: str = "pre-tool-use") -> str:
     """Return a minimal import-first secret guard hook script."""
 
     return dedent(
-        f'''\
+        '''\
         #!/usr/bin/env python3
         """Minimal Codex hook built with codex-hookkit."""
 
         from __future__ import annotations
 
-        from codex_hookkit import HookPayload, SecretPolicy, deny
+        from codex_hookkit import PreToolUseInput, SecretPolicy, deny
 
 
         def main() -> int:
-            payload = HookPayload.from_stdin(schema={schema!r})
+            payload = PreToolUseInput.from_stdin()
             decision = SecretPolicy.default().evaluate(payload)
 
             if decision.denied:

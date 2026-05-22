@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""PostToolUse hook using exit status."""
+"""PostToolUse hook using typed input and exit status."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload
+from codex_hookkit import PostToolUseInput
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="post-tool-use")
-    _ = payload.raw["tool_response"]
+    PostToolUseInput.from_stdin()
     return 0
 
 

@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""SubagentStart hook using exit status."""
+"""SubagentStart hook using typed input and exit status."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload
+from codex_hookkit import SubagentStartInput
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="subagent-start")
-    _ = payload.raw["agent_type"]
+    SubagentStartInput.from_stdin()
     return 0
 
 

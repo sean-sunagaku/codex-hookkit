@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""SessionStart hook using exit status."""
+"""SessionStart hook using typed input and exit status."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload
+from codex_hookkit import SessionStartInput
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="session-start")
-    _ = payload.raw["source"]
+    SessionStartInput.from_stdin()
     return 0
 
 

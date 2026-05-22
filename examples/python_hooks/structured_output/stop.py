@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Stop hook using structured JSON output."""
+"""Stop hook using typed input and structured output."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, StopOutput
+from codex_hookkit import StopInput, StopOutput
 
 
 def main() -> int:
-    HookPayload.from_stdin(schema="stop")
+    StopInput.from_stdin()
     StopOutput.minimal().write()
     return 0
 

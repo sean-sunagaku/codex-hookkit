@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""PermissionRequest hook using structured JSON output."""
+"""PermissionRequest hook using typed input and structured output."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, PermissionRequestOutput, SecretPolicy
+from codex_hookkit import PermissionRequestInput, PermissionRequestOutput, SecretPolicy
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="permission-request")
+    payload = PermissionRequestInput.from_stdin()
     decision = SecretPolicy.default().evaluate(payload)
     if decision.denied:
         PermissionRequestOutput.deny(decision.reason).write()

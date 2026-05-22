@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from codex_hookkit import HookPayload, request_review, run_review
+from codex_hookkit import PostToolUseInput, StopInput, request_review, run_review
 from codex_hookkit.review import ACTIVE_ENV, marker_path
 
 
@@ -49,7 +49,7 @@ def test_request_review_marks_changed_code(tmp_path: Path) -> None:
     init_repo(tmp_path)
     (tmp_path / "app.py").write_text("print('hello')\n", encoding="utf-8")
 
-    payload = HookPayload.from_dict(post_tool_payload(tmp_path), schema="post-tool-use")
+    payload = PostToolUseInput.from_dict(post_tool_payload(tmp_path))
     marker = request_review(payload, state_dir=".state")
 
     assert marker is not None
@@ -60,10 +60,10 @@ def test_request_review_marks_changed_code(tmp_path: Path) -> None:
 def test_run_review_dry_run_prints_prompt(tmp_path: Path, capsys) -> None:
     init_repo(tmp_path)
     (tmp_path / "app.py").write_text("print('hello')\n", encoding="utf-8")
-    request_review(HookPayload.from_dict(post_tool_payload(tmp_path), schema="post-tool-use"))
+    request_review(PostToolUseInput.from_dict(post_tool_payload(tmp_path)))
 
     result = run_review(
-        HookPayload.from_dict(stop_payload(tmp_path), schema="stop"),
+        StopInput.from_dict(stop_payload(tmp_path)),
         dry_run=True,
     )
 
@@ -78,9 +78,7 @@ def test_review_hooks_skip_when_nested(tmp_path: Path, monkeypatch) -> None:
     (tmp_path / "app.py").write_text("print('hello')\n", encoding="utf-8")
     monkeypatch.setenv(ACTIVE_ENV, "1")
 
-    marker = request_review(
-        HookPayload.from_dict(post_tool_payload(tmp_path), schema="post-tool-use")
-    )
+    marker = request_review(PostToolUseInput.from_dict(post_tool_payload(tmp_path)))
 
     assert marker is None
 

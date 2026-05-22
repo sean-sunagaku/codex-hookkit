@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""Stop hook using exit status."""
+"""Stop hook using typed input and exit status."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload
+from codex_hookkit import StopInput
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="stop")
-    _ = payload.raw["last_assistant_message"]
+    StopInput.from_stdin()
     return 0
 
 

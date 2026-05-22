@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""UserPromptSubmit hook using structured JSON output."""
+"""UserPromptSubmit hook using typed input and structured output."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, UserPromptSubmitOutput
+from codex_hookkit import UserPromptSubmitInput, UserPromptSubmitOutput
 
 
 def main() -> int:
-    HookPayload.from_stdin(schema="user-prompt-submit")
+    UserPromptSubmitInput.from_stdin()
     UserPromptSubmitOutput.minimal().write()
     return 0
 

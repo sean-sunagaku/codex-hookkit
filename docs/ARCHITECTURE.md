@@ -18,6 +18,7 @@ building Codex hook guards without guessing the hook payload contract.
 src/codex_hookkit/
   schemas.py      # schema discovery, loading, and jsonschema validation
   payload.py      # HookPayload parsing from stdin, stream, or dict
+  inputs.py       # generated Pydantic classes for schema-valid hook inputs
   outputs.py      # generated Pydantic classes for schema-valid hook outputs
   decisions.py    # compatibility allow / deny helpers over generated outputs
   policy.py       # minimal SecretPolicy default guard
@@ -47,7 +48,7 @@ tests/test_review.py
 ```mermaid
 flowchart LR
   A["Codex hook event"] --> B["stdin JSON payload"]
-  B --> C["HookPayload.from_stdin"]
+  B --> C["XxxInput.from_stdin"]
   C --> D["schemas.validate(input)"]
   D --> E["SecretPolicy.evaluate"]
   E --> F{"Decision"}
@@ -85,12 +86,15 @@ This is deliberately a snapshot, not a Git submodule:
 The intended import path is:
 
 ```python
-from codex_hookkit import HookPayload, SecretPolicy, allow, deny
+from codex_hookkit import PreToolUseInput, PreToolUseOutput, SecretPolicy
 ```
 
 Stable concepts:
 
-- `HookPayload`: parsed hook payload plus convenience accessors.
+- `StructuredInput`: base class for generated, schema-validated input models.
+- `PreToolUseInput`, `PermissionRequestInput`, and other generated input
+  classes: typed hook input readers.
+- `HookPayload`: compatibility wrapper for older generic policy code.
 - `SecretPolicy`: small default policy for secret-file and token access.
 - `Decision`: allowed or denied result.
 - `StructuredOutput`: base class for generated, schema-validated output models.
@@ -128,10 +132,11 @@ Default behavior:
 With `--json-output`, denials and allows are emitted as validated
 `hookSpecificOutput` JSON and the process exits `0`.
 
-## Generated Output Models
+## Generated Input And Output Models
 
-`src/codex_hookkit/outputs.py` is generated from the vendored Codex output
-schemas. It should not be edited by hand.
+`src/codex_hookkit/inputs.py` and `src/codex_hookkit/outputs.py` are generated
+from the vendored Codex input and output schemas. They should not be edited by
+hand.
 
 Regenerate it with:
 
@@ -144,7 +149,8 @@ from the generator. This keeps the architecture simple:
 
 - schema files define the contract
 - the generator turns that contract into Pydantic classes
-- `outputs.py` exposes structured, validated objects
+- `inputs.py` exposes structured, validated hook payloads
+- `outputs.py` exposes structured, validated responses
 - `decisions.py` remains a thin backward-compatible wrapper
 
 ## Local Codex Hook Config
@@ -173,6 +179,7 @@ Keep these boundaries in mind:
 
 - Schema validation belongs in `schemas.py`.
 - Payload normalization belongs in `payload.py`.
+- Generated Codex input models belong in `inputs.py`.
 - Generated Codex output models belong in `outputs.py`.
 - Compatibility decision helpers belong in `decisions.py`.
 - Security rules belong in `policy.py` or caller-owned policies.

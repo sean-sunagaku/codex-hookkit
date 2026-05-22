@@ -14,7 +14,7 @@ snapshot updates.
 - stdin parsing for Codex hook payloads
 - JSON-schema validation helpers
 - allow / deny output builders
-- Pydantic structured output models generated from Codex output schemas
+- Pydantic structured input and output models generated from Codex schemas
 - a minimal sample guard runner CLI
 - a hook skeleton generator
 - a two-step Codex review hook for changed code
@@ -47,15 +47,17 @@ For real hook implementations, prefer importing the library from your own
 Python hook file:
 
 ```python
-from codex_hookkit import HookPayload, SecretPolicy, deny
+from codex_hookkit import PreToolUseInput, PreToolUseOutput, SecretPolicy
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="pre-tool-use")
+    payload = PreToolUseInput.from_stdin()
     decision = SecretPolicy.default().evaluate(payload)
 
     if decision.denied:
-        return deny.stderr_exit(decision.reason)
+        PreToolUseOutput.deny(decision.reason).write()
+    else:
+        PreToolUseOutput.allow().write()
 
     return 0
 ```
@@ -72,32 +74,20 @@ Generate a Codex review hook config with:
 codex-hookkit scaffold --kind codex-review-hooks --output hooks.json
 ```
 
-The repository also includes validated minimal examples:
+The repository also includes Python hook examples and real hook config samples:
 
 ```text
-examples/permission_request_payload.json
-examples/permission_request_allow.json
-examples/permission_request_deny.json
-examples/post_compact_payload.json
-examples/post_tool_use_payload.json
-examples/pre_compact_payload.json
-examples/pre_tool_use_payload.json
-examples/pre_tool_use_allow.json
-examples/pre_tool_use_deny.json
-examples/session_start_payload.json
-examples/stop_payload.json
-examples/subagent_start_payload.json
-examples/subagent_stop_payload.json
-examples/user_prompt_submit_payload.json
 examples/minimal_secret_guard.py
 examples/python_hooks/exit_status/*.py
 examples/python_hooks/structured_output/*.py
+examples/hooks.json
 examples/codex_review_hooks.json
 ```
 
-The structured-output examples use generated Pydantic classes such as
-`PreToolUseOutput`, `PermissionRequestOutput`, and `SessionStartOutput`.
-Regenerate those classes from the vendored Codex output schemas with:
+The structured examples use generated Pydantic classes such as
+`PreToolUseInput`, `PreToolUseOutput`, `PermissionRequestInput`,
+`PermissionRequestOutput`, and `SessionStartOutput`. Regenerate those classes
+from the vendored Codex schemas with:
 
 ```sh
 uv run python tools/generate_pydantic_outputs.py
@@ -140,13 +130,15 @@ codex-hookkit download-schemas --dest third_party/openai-codex-hook-schemas
 ## Python API
 
 ```python
-from codex_hookkit import HookPayload, SecretPolicy, deny
+from codex_hookkit import PreToolUseInput, PreToolUseOutput, SecretPolicy
 
-payload = HookPayload.from_stdin(schema="pre-tool-use")
+payload = PreToolUseInput.from_stdin()
 decision = SecretPolicy.default().evaluate(payload)
 
 if decision.denied:
-    raise SystemExit(deny.stderr_exit(decision.reason))
+    PreToolUseOutput.deny(decision.reason).write()
+else:
+    PreToolUseOutput.allow().write()
 ```
 
 JSON output helpers are also available for Codex hook contracts that consume
@@ -229,15 +221,17 @@ The runtime flow is:
 
 ```text
 Codex hook payload
-  -> HookPayload.from_stdin()
+  -> XxxInput.from_stdin()
   -> schema validation
   -> SecretPolicy.evaluate()
-  -> allow or deny output
+  -> XxxOutput.write() or exit status
 ```
 
 The key modules are:
 
 - `schemas.py`: locate, load, and validate vendored Codex schemas
+- `inputs.py`: generated Pydantic classes for Codex hook inputs
+- `outputs.py`: generated Pydantic classes for Codex hook outputs
 - `payload.py`: parse hook payloads and extract command text
 - `decisions.py`: build allow / deny decisions and structured outputs
 - `policy.py`: default secret-file and token-access guard
@@ -286,4 +280,6 @@ uv run python tools/update_codex_hook_schemas.py
 - `docs/PAYLOADS.md`: what hook payloads look like and what outputs are fixed
 - `docs/AI_GUIDE.md`: guide for AI agents changing this repository
 - `docs/RELEASE.md`: build, publish, and post-publish checks
+- `docs/ja/`: Japanese documentation
+- `README.ja.md`: Japanese README
 - `AGENTS.md`: repository instructions for Codex and other agents

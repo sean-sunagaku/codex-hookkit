@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
-"""PreToolUse hook using exit status.
-
-Return 0 to allow the tool call. Return 2 and write a reason to stderr to
-block it.
-"""
+"""PreToolUse hook using typed input and exit status."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, SecretPolicy, deny
+from codex_hookkit import PreToolUseInput, SecretPolicy, deny
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="pre-tool-use")
+    payload = PreToolUseInput.from_stdin()
     decision = SecretPolicy.default().evaluate(payload)
     if decision.denied:
         return deny.stderr_exit(decision.reason)

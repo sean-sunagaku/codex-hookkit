@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""PreCompact hook using structured JSON output."""
+"""PreCompact hook using typed input and structured output."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, PreCompactOutput
+from codex_hookkit import PreCompactInput, PreCompactOutput
 
 
 def main() -> int:
-    HookPayload.from_stdin(schema="pre-compact")
+    PreCompactInput.from_stdin()
     PreCompactOutput.minimal().write()
     return 0
 

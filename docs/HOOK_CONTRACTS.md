@@ -41,19 +41,21 @@ uv run codex-hookkit schemas --direction both
 
 ## Input Validation
 
-Use `HookPayload` when writing a hook:
+Use generated input models when writing a hook:
+
+```python
+from codex_hookkit import PreToolUseInput
+
+payload = PreToolUseInput.from_stdin()
+```
+
+This validates the incoming JSON against the matching input schema by default.
+`HookPayload` remains available as a compatibility wrapper for generic code:
 
 ```python
 from codex_hookkit import HookPayload
 
-payload = HookPayload.from_stdin(schema="pre-tool-use")
-```
-
-This validates the incoming JSON against the matching input schema by default.
-Disable validation only for debugging:
-
-```python
-payload = HookPayload.from_stdin(schema="pre-tool-use", validate_schema=False)
+payload = HookPayload.from_model(PreToolUseInput.from_stdin())
 ```
 
 Codex sends the hook payload as one JSON object on `stdin`. The exact fields are
@@ -73,13 +75,14 @@ Common fields currently include:
 - `model`
 - `transcript_path`
 
-Treat the schema as the contract. Treat convenience properties like
-`payload.tool_input` and `payload.command_text()` as helpers layered on top.
+Treat the schema as the contract. Treat compatibility helpers like
+`HookPayload.command_text()` as helpers layered on top.
 
 ## Command Extraction
 
-`HookPayload.command_text()` performs best-effort extraction from common Codex
-tool inputs:
+`SecretPolicy` can evaluate generated input models directly. The compatibility
+`HookPayload.command_text()` method performs best-effort extraction from common
+Codex tool inputs:
 
 - `tool_input.cmd`
 - `tool_input.command`

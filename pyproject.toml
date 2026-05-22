@@ -43,6 +43,7 @@ include = [
   "/AGENTS.md",
   "/LICENSE",
   "/README.md",
+  "/README.ja.md",
   "/docs",
   "/examples",
   "/pyproject.toml",
@@ -67,6 +68,7 @@ testpaths = ["tests"]
 line-length = 100
 target-version = "py310"
 extend-exclude = [
+  "src/codex_hookkit/inputs.py",
   "src/codex_hookkit/outputs.py",
 ]
 

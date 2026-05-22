@@ -1,7 +1,0 @@
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "permissionDecision": "deny",
-    "permissionDecisionReason": "Blocked direct secret file access."
-  }
-}

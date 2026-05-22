@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""PostCompact hook using exit status."""
+"""PostCompact hook using typed input and exit status."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload
+from codex_hookkit import PostCompactInput
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="post-compact")
-    _ = payload.raw["trigger"]
+    PostCompactInput.from_stdin()
     return 0
 
 

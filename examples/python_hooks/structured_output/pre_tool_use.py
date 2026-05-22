@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""PreToolUse hook using structured JSON output."""
+"""PreToolUse hook using typed input and structured output."""
 
 from __future__ import annotations
 
-from codex_hookkit import HookPayload, PreToolUseOutput, SecretPolicy
+from codex_hookkit import PreToolUseInput, PreToolUseOutput, SecretPolicy
 
 
 def main() -> int:
-    payload = HookPayload.from_stdin(schema="pre-tool-use")
+    payload = PreToolUseInput.from_stdin()
     decision = SecretPolicy.default().evaluate(payload)
     if decision.denied:
         PreToolUseOutput.deny(decision.reason).write()

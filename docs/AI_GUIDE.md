@@ -114,11 +114,18 @@ When changing JSON output:
 
 - edit the generator in `tools/generate_pydantic_outputs.py`
 - run `uv run python tools/generate_pydantic_outputs.py`
+- keep `src/codex_hookkit/inputs.py` generated from vendored input schemas
 - keep `src/codex_hookkit/outputs.py` generated from vendored output schemas
 - keep `decisions.py` as a thin compatibility layer over generated output models
 - add tests for `--json-output`
 - keep `tests/test_outputs.py` passing so the generator and generated file stay
   in sync
+
+When changing examples:
+
+- keep `examples/` focused on Python hook files and real hook config samples
+- do not add JSON payload/output fixtures under `examples/`
+- put schema fixture data in tests instead
 
 ## Security Rules
 
