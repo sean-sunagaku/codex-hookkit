@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "codex-hookkit"
-version = "0.0.3"
+version = "0.0.4"
 description = "Small helpers for building Codex hook guards against upstream hook schemas."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -37,6 +37,7 @@ packages = ["src/codex_hookkit"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "third_party/openai-codex-hook-schemas" = "codex_hookkit/vendor/openai-codex-hook-schemas"
+"skills" = "codex_hookkit/skills"
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -69,8 +70,8 @@ testpaths = ["tests"]
 line-length = 100
 target-version = "py310"
 extend-exclude = [
-  "src/codex_hookkit/inputs.py",
-  "src/codex_hookkit/outputs.py",
+  "src/codex_hookkit/core/inputs.py",
+  "src/codex_hookkit/core/outputs.py",
 ]
 
 [tool.ruff.lint]

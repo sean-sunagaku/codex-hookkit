@@ -47,8 +47,8 @@ def load_generator_module() -> object:
 def test_generated_inputs_and_outputs_are_in_sync() -> None:
     generator = load_generator_module()
     for direction, target in {
-        "input": ROOT / "src" / "codex_hookkit" / "inputs.py",
-        "output": ROOT / "src" / "codex_hookkit" / "outputs.py",
+        "input": ROOT / "src" / "codex_hookkit" / "core" / "inputs.py",
+        "output": ROOT / "src" / "codex_hookkit" / "core" / "outputs.py",
     }.items():
         rendered = generator.render_module(sorted(generator.EVENT_NAMES), direction=direction)
         current = target.read_text(encoding="utf-8")

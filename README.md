@@ -68,6 +68,12 @@ Generate that skeleton with:
 codex-hookkit scaffold --output hooks/secret_guard.py
 ```
 
+Initialize a minimal hook project skeleton with:
+
+```sh
+codex-hookkit init --output-dir .
+```
+
 Generate a Codex review hook config with:
 
 ```sh
@@ -269,16 +275,16 @@ Codex hook payload
 
 The key modules are:
 
-- `schemas.py`: locate, load, and validate vendored Codex schemas
-- `inputs.py`: generated Pydantic classes for Codex hook inputs
-- `outputs.py`: generated Pydantic classes for Codex hook outputs
-- `decisions.py`: build allow / deny decisions and structured outputs
-- `policy.py`: default secret-file and token-access guard
-- `review.py`: two-step changed-code Codex review hook
-- `trust.py`: compute and write Codex hook trusted hashes
-- `upstream.py`: download pinned upstream schema snapshots
-- `scaffold.py`: generate small hook skeletons
-- `cli.py`: sample runner and project setup helpers
+- `core/schemas.py`: locate, load, and validate vendored Codex schemas
+- `core/inputs.py`: generated Pydantic classes for Codex hook inputs
+- `core/outputs.py`: generated Pydantic classes for Codex hook outputs
+- `core/decisions.py`: build allow / deny decisions and structured outputs
+- `core/policy.py`: default secret-file and token-access guard
+- `core/review.py`: two-step changed-code Codex review hook
+- `core/trust.py`: compute and write Codex hook trusted hashes
+- `core/upstream.py`: download pinned upstream schema snapshots
+- `core/scaffold.py`: generate small hook and project skeletons
+- `cli/`: sample runner and project setup helpers
 
 See `docs/ARCHITECTURE.md` for the full design notes.
 
@@ -287,6 +293,7 @@ See `docs/ARCHITECTURE.md` for the full design notes.
 ```sh
 uv sync --dev
 uv run python tools/generate_pydantic_models.py
+uv run python tools/validate_skills.py
 uv run ruff format .
 uv run ruff check .
 uv run pytest -q

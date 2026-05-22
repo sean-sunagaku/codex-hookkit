@@ -16,17 +16,26 @@ building Codex hook guards without guessing the hook payload contract.
 
 ```text
 src/codex_hookkit/
-  schemas.py      # schema discovery, loading, and jsonschema validation
-  inputs.py       # generated Pydantic classes for schema-valid hook inputs
-  outputs.py      # generated Pydantic classes for schema-valid hook outputs
-  decisions.py    # compatibility allow / deny helpers over generated outputs
-  policy.py       # minimal SecretPolicy default guard
-  review.py       # changed-code marker and Stop-hook Codex review runner
-  trust.py        # Codex hook trusted-hash writer
-  upstream.py     # importable schema snapshot downloader
-  scaffold.py     # hook skeleton generation
-  cli.py          # sample runner and project setup helpers
+  __init__.py       # public import-first API re-export
+  core/
+    schemas.py      # schema discovery, loading, and jsonschema validation
+    inputs.py       # generated Pydantic classes for schema-valid hook inputs
+    outputs.py      # generated Pydantic classes for schema-valid hook outputs
+    decisions.py    # compatibility allow / deny helpers over generated outputs
+    policy.py       # minimal SecretPolicy default guard
+    review.py       # changed-code marker and Stop-hook Codex review runner
+    trust.py        # Codex hook trusted-hash writer
+    upstream.py     # importable schema snapshot downloader
+    scaffold.py     # hook skeleton and project skeleton generation
+  cli/
+    __init__.py     # sample runner and project setup helpers
+    __main__.py     # python -m codex_hookkit.cli
 ```
+
+Internal implementation lives under `codex_hookkit.core`. User hook files
+should usually import from the package root, for example
+`from codex_hookkit import PreToolUseInput`. Code that needs non-root internals
+should import from `codex_hookkit.core.*`.
 
 The repository also contains:
 
@@ -118,6 +127,7 @@ names, and selected token environment names.
 - `guard`: minimal sample / generic guard runner
 - `schemas`: schema discovery
 - `scaffold`: hook skeleton generation
+- `init`: minimal project skeleton generation
 - `download-schemas`: upstream schema snapshot download
 - `trust-hooks`: write hook trusted hashes into Codex config.toml
 
@@ -134,9 +144,9 @@ With `--json-output`, denials and allows are emitted as validated
 
 ## Generated Input And Output Models
 
-`src/codex_hookkit/inputs.py` and `src/codex_hookkit/outputs.py` are generated
-from the vendored Codex input and output schemas. They should not be edited by
-hand.
+`src/codex_hookkit/core/inputs.py` and `src/codex_hookkit/core/outputs.py` are
+generated from the vendored Codex input and output schemas. They should not be
+edited by hand.
 
 Regenerate it with:
 
@@ -177,16 +187,16 @@ This project is a toolkit, not a full policy engine.
 
 Keep these boundaries in mind:
 
-- Schema validation belongs in `schemas.py`.
-- Generated Codex input models belong in `inputs.py`.
-- Generated Codex output models belong in `outputs.py`.
-- Compatibility decision helpers belong in `decisions.py`.
-- Security rules belong in `policy.py` or caller-owned policies.
-- Changed-code review orchestration belongs in `review.py`.
-- Codex hook trust-state hashing and config writes belong in `trust.py`.
-- Schema download belongs in `upstream.py`.
-- Skeleton text belongs in `scaffold.py`.
-- CLI argument parsing and sample runner behavior belong in `cli.py`.
+- Schema validation belongs in `core/schemas.py`.
+- Generated Codex input models belong in `core/inputs.py`.
+- Generated Codex output models belong in `core/outputs.py`.
+- Compatibility decision helpers belong in `core/decisions.py`.
+- Security rules belong in `core/policy.py` or caller-owned policies.
+- Changed-code review orchestration belongs in `core/review.py`.
+- Codex hook trust-state hashing and config writes belong in `core/trust.py`.
+- Schema download belongs in `core/upstream.py`.
+- Skeleton text belongs in `core/scaffold.py`.
+- CLI argument parsing and sample runner behavior belong in `cli/`.
 
 Do not add product-specific policy directly to the default package unless it is
 generic enough to help most Codex hook users.

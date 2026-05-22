@@ -8,6 +8,7 @@ This repository uses `uv` for local development, build, and publish workflows.
 - Tests pass locally.
 - The version in `pyproject.toml` is the version you intend to publish.
 - If exporting `__version__`, keep it aligned with `pyproject.toml`.
+- Bundled skills validate with `tools/validate_skills.py`.
 - PyPI credentials are available without printing them.
 
 ## Verify
@@ -15,6 +16,7 @@ This repository uses `uv` for local development, build, and publish workflows.
 ```sh
 uv sync --dev
 uv run python tools/check_generated_models.py
+uv run python tools/validate_skills.py
 uv run ruff format --check .
 uv run ruff check .
 uv run pytest -q
@@ -33,7 +35,9 @@ Optional package-content check:
 
 ```sh
 python -m tarfile -l dist/codex_hookkit-*.tar.gz | grep openai-codex-hook-schemas
+python -m tarfile -l dist/codex_hookkit-*.tar.gz | grep skills/codex-hookkit
 python -m zipfile -l dist/codex_hookkit-*.whl | grep openai-codex-hook-schemas
+python -m zipfile -l dist/codex_hookkit-*.whl | grep codex_hookkit/skills/codex-hookkit
 ```
 
 ## Publish

@@ -6,8 +6,8 @@ import argparse
 import sys
 from pathlib import Path
 
-from .decisions import allow, deny, dump_json
-from .inputs import (
+from codex_hookkit.core.decisions import allow, deny, dump_json
+from codex_hookkit.core.inputs import (
     PermissionRequestInput,
     PostCompactInput,
     PostToolUseInput,
@@ -19,12 +19,12 @@ from .inputs import (
     SubagentStopInput,
     UserPromptSubmitInput,
 )
-from .policy import SecretPolicy
-from .review import request_review, run_review
-from .scaffold import codex_review_hooks, secret_guard_hook
-from .schemas import available_schemas
-from .trust import hook_trust_entries, write_hook_trusts
-from .upstream import DEFAULT_DEST, download_schema_snapshot
+from codex_hookkit.core.policy import SecretPolicy
+from codex_hookkit.core.review import request_review, run_review
+from codex_hookkit.core.scaffold import codex_review_hooks, project_skeleton, secret_guard_hook
+from codex_hookkit.core.schemas import available_schemas
+from codex_hookkit.core.trust import hook_trust_entries, write_hook_trusts
+from codex_hookkit.core.upstream import DEFAULT_DEST, download_schema_snapshot
 
 INPUT_MODELS = {
     "permission-request": PermissionRequestInput,
@@ -73,6 +73,25 @@ def build_parser() -> argparse.ArgumentParser:
         "-o",
         type=Path,
         help="write the skeleton to this file instead of stdout",
+    )
+
+    init = subparsers.add_parser("init", help="write a minimal project hook skeleton")
+    init.add_argument(
+        "--output-dir",
+        "-o",
+        type=Path,
+        default=Path("."),
+        help="project directory to initialize",
+    )
+    init.add_argument(
+        "--force",
+        action="store_true",
+        help="overwrite existing generated skeleton files",
+    )
+    init.add_argument(
+        "--with-review",
+        action="store_true",
+        help="include the optional PostToolUse/Stop Codex review hook flow",
     )
 
     download = subparsers.add_parser(
@@ -144,6 +163,19 @@ def main(argv: list[str] | None = None) -> int:
             args.output.write_text(content, encoding="utf-8")
         else:
             print(content, end="")
+        return 0
+
+    if args.command == "init":
+        try:
+            written = project_skeleton(
+                args.output_dir,
+                force=args.force,
+                include_review=args.with_review,
+            )
+        except Exception as exc:
+            return deny.stderr_exit(f"Failed to write Codex hook skeleton: {exc}")
+        for path in written:
+            print(path)
         return 0
 
     if args.command == "download-schemas":

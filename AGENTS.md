@@ -16,6 +16,7 @@
 - `docs/PAYLOADS.md`
 - `docs/AI_GUIDE.md`
 - `src/codex_hookkit/*.py`
+- `src/codex_hookkit/core/*.py`
 - `tests/test_cli.py`
 
 Release や publish を扱う場合は `docs/RELEASE.md` も読んでください。
@@ -40,6 +41,7 @@ Release や publish を扱う場合は `docs/RELEASE.md` も読んでくださ�
 ```sh
 uv sync --dev
 uv run python tools/check_generated_models.py
+uv run python tools/validate_skills.py
 uv run ruff format --check .
 uv run ruff check .
 uv run pytest -q

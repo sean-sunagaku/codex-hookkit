@@ -35,6 +35,12 @@ def main() -> int:
     return 0
 ```
 
+最小の hook project skeleton を作る場合は:
+
+```sh
+codex-hookkit init --output-dir .
+```
+
 ## Examples
 
 ```text
@@ -98,6 +104,7 @@ stderr 側へ出ることがあります。stdout だけを見ると、実際に
 
 ```sh
 uv sync --dev
+uv run python tools/validate_skills.py
 make check
 ```
 

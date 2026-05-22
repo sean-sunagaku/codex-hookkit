@@ -95,6 +95,54 @@ def test_scaffold_writes_output_file(tmp_path: Path) -> None:
     assert "def main() -> int:" in output.read_text(encoding="utf-8")
 
 
+def test_init_writes_project_skeleton(tmp_path: Path) -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "codex_hookkit.cli",
+            "init",
+            "--output-dir",
+            str(tmp_path),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+
+    hook_file = tmp_path / "hooks" / "secret_guard.py"
+    hooks_json = tmp_path / ".codex" / "hooks.json"
+    config = tmp_path / "config.toml"
+    assert hook_file.exists()
+    assert hooks_json.exists()
+    assert config.exists()
+
+    assert "PreToolUseInput.from_stdin()" in hook_file.read_text(encoding="utf-8")
+    hook_config = json.loads(hooks_json.read_text(encoding="utf-8"))
+    assert "PreToolUse" in hook_config["hooks"]
+    assert "uv run python hooks/secret_guard.py" in hooks_json.read_text(encoding="utf-8")
+
+
+def test_init_refuses_to_overwrite_without_force(tmp_path: Path) -> None:
+    (tmp_path / "config.toml").write_text("model = 'existing'\n", encoding="utf-8")
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "codex_hookkit.cli",
+            "init",
+            "--output-dir",
+            str(tmp_path),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 2
+    assert "refusing to overwrite" in result.stderr
+
+
 def test_schemas_can_print_file_style_names() -> None:
     result = subprocess.run(
         [sys.executable, "-m", "codex_hookkit.cli", "schemas", "--direction", "both"],

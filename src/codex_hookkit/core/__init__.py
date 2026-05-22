@@ -1,7 +1,7 @@
-"""Small helpers for building Codex hook guards."""
+"""Importable core APIs for building Codex hooks."""
 
-from .core.decisions import Decision, allow, deny, dump_json
-from .core.inputs import (
+from .decisions import Decision, allow, deny, dump_json
+from .inputs import (
     PermissionRequestInput,
     PostCompactInput,
     PostToolUseInput,
@@ -14,7 +14,7 @@ from .core.inputs import (
     SubagentStopInput,
     UserPromptSubmitInput,
 )
-from .core.outputs import (
+from .outputs import (
     PermissionRequestDecision,
     PermissionRequestHookSpecificOutput,
     PermissionRequestOutput,
@@ -34,14 +34,12 @@ from .core.outputs import (
     UserPromptSubmitHookSpecificOutput,
     UserPromptSubmitOutput,
 )
-from .core.policy import SecretPolicy
-from .core.review import ReviewMarker, request_review, run_review
-from .core.scaffold import codex_review_hooks, project_skeleton, secret_guard_hook
-from .core.schemas import SchemaName, available_schemas, load_schema, schema_path, validate
-from .core.trust import HookTrustEntry, HookTrustWriteResult, hook_trust_entries, write_hook_trusts
-from .core.upstream import SchemaSnapshot, download_schema_snapshot
-
-__version__ = "0.0.4"
+from .policy import SecretPolicy
+from .review import ReviewMarker, request_review, run_review
+from .scaffold import codex_review_hooks, project_skeleton, secret_guard_hook
+from .schemas import SchemaName, available_schemas, load_schema, schema_path, validate
+from .trust import HookTrustEntry, HookTrustWriteResult, hook_trust_entries, write_hook_trusts
+from .upstream import SchemaSnapshot, download_schema_snapshot
 
 __all__ = [
     "Decision",
@@ -79,7 +77,6 @@ __all__ = [
     "UserPromptSubmitHookSpecificOutput",
     "UserPromptSubmitInput",
     "UserPromptSubmitOutput",
-    "__version__",
     "allow",
     "available_schemas",
     "codex_review_hooks",
@@ -88,12 +85,12 @@ __all__ = [
     "download_schema_snapshot",
     "hook_trust_entries",
     "load_schema",
+    "project_skeleton",
     "request_review",
     "ReviewMarker",
     "run_review",
     "schema_path",
     "secret_guard_hook",
-    "project_skeleton",
     "validate",
     "write_hook_trusts",
 ]

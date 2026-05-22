@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import sys
 
-from codex_hookkit.upstream import DEFAULT_DEST, download_schema_snapshot
+from codex_hookkit.core.upstream import DEFAULT_DEST, download_schema_snapshot
 
 
 def main() -> int:

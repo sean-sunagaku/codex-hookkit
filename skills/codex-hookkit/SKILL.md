@@ -59,7 +59,9 @@ make check
 
 ## Editing This Repository
 
-- Keep generated input/output models in `src/codex_hookkit/inputs.py` and `src/codex_hookkit/outputs.py` generated-only.
+- Keep generated input/output models in `src/codex_hookkit/core/inputs.py` and `src/codex_hookkit/core/outputs.py` generated-only.
+- Treat `src/codex_hookkit/core/` as the implementation package and `src/codex_hookkit/cli/` as the command package.
+- Do not add top-level implementation modules such as `src/codex_hookkit/trust.py`; keep implementation under `core/`.
 - Regenerate models with `uv run python tools/generate_pydantic_models.py`.
 - Check generated-model drift with `uv run python tools/check_generated_models.py`.
 - Update upstream schema snapshots only through `tools/update_codex_hook_schemas.py`.

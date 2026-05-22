@@ -10,8 +10,8 @@ from pathlib import Path
 import generate_pydantic_models
 
 GENERATED_FILES = (
-    Path("src/codex_hookkit/inputs.py"),
-    Path("src/codex_hookkit/outputs.py"),
+    Path("src/codex_hookkit/core/inputs.py"),
+    Path("src/codex_hookkit/core/outputs.py"),
 )
 
 

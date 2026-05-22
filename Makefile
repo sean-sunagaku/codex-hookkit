@@ -1,4 +1,4 @@
-.PHONY: build check check-generated ci codex-exec-debug codex-exec-e2e fmt lint test
+.PHONY: build check check-generated check-skills ci codex-exec-debug codex-exec-e2e fmt lint test
 
 fmt:
 	uv run ruff check --fix .
@@ -10,6 +10,9 @@ lint:
 
 check-generated:
 	uv run python tools/check_generated_models.py
+
+check-skills:
+	uv run python tools/validate_skills.py
 
 test:
 	uv run pytest -q
@@ -25,6 +28,6 @@ build:
 	uv build
 	uv run twine check dist/*
 
-check: check-generated lint test build
+check: check-generated check-skills lint test build
 
 ci: check

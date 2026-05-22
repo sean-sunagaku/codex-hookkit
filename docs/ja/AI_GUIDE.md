@@ -17,6 +17,7 @@
 ```sh
 uv sync --dev
 uv run python tools/check_generated_models.py
+uv run python tools/validate_skills.py
 uv run ruff format --check .
 uv run ruff check .
 uv run pytest -q
@@ -26,6 +27,6 @@ make check
 ## 変更方針
 
 - input/output model を変える場合は generator と tests を更新する
-- policy を変える場合は `policy.py` と focused test を更新する
-- review hook を変える場合は `review.py` と `tests/test_review.py` を更新する
+- policy を変える場合は `src/codex_hookkit/core/policy.py` と focused test を更新する
+- review hook を変える場合は `src/codex_hookkit/core/review.py` と `tests/test_review.py` を更新する
 - docs は英語版と日本語版の両方を更新する

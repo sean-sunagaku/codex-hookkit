@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from codex_hookkit.trust import HookTrustEntry, hook_trust_entries, upsert_hook_trust_state
+from codex_hookkit.core.trust import HookTrustEntry, hook_trust_entries, upsert_hook_trust_state
 
 ROOT = Path(__file__).resolve().parents[1]
 

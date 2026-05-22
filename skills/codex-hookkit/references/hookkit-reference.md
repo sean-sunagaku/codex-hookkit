@@ -64,6 +64,7 @@ The CLI is intentionally secondary to import-first hook files:
 codex-hookkit guard --schema pre-tool-use
 codex-hookkit guard --schema pre-tool-use --json-output
 codex-hookkit scaffold --output hooks/secret_guard.py
+codex-hookkit init --output-dir .
 codex-hookkit scaffold --kind codex-review-hooks --output hooks.json
 codex-hookkit schemas --direction both
 codex-hookkit download-schemas --dest third_party/openai-codex-hook-schemas

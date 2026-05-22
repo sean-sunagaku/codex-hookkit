@@ -25,7 +25,7 @@ SchemaName = Literal[
 
 _VENDOR_ROOT = "vendor/openai-codex-hook-schemas/generated"
 _THIRD_PARTY_ROOT = (
-    Path(__file__).resolve().parents[2] / "third_party" / "openai-codex-hook-schemas" / "generated"
+    Path(__file__).resolve().parents[3] / "third_party" / "openai-codex-hook-schemas" / "generated"
 )
 
 

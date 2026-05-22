@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from codex_hookkit import PostToolUseInput, StopInput, request_review, run_review
-from codex_hookkit.review import ACTIVE_ENV, marker_path
+from codex_hookkit.core.review import ACTIVE_ENV, marker_path
 
 
 def init_repo(path: Path) -> None:

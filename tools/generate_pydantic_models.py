@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA_DIR = Path("third_party/openai-codex-hook-schemas/generated")
-INPUT_DEST = Path("src/codex_hookkit/inputs.py")
-OUTPUT_DEST = Path("src/codex_hookkit/outputs.py")
+INPUT_DEST = Path("src/codex_hookkit/core/inputs.py")
+OUTPUT_DEST = Path("src/codex_hookkit/core/outputs.py")
 
 EVENT_NAMES = {
     "permission-request": "PermissionRequest",
