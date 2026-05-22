@@ -135,6 +135,19 @@ codex-hookkit trust-hooks --hooks-path .codex/hooks.json
 
 This upserts `[hooks.state."..."] trusted_hash = "..."` entries in
 `~/.codex/config.toml`. Use `--dry-run` to print the entries without writing.
+The repository includes a small project-local `config.toml` for Codex defaults;
+trust state is not committed because Codex records absolute hook file paths.
+
+Run the real Codex CLI hook smoke test locally with:
+
+```sh
+make codex-exec-e2e
+```
+
+That test creates a temporary `CODEX_HOME`, copies your existing Codex auth,
+writes hook trust entries, then verifies `codex exec` can run an ordinary
+command and that the secret-file guard blocks a sensitive file-read command.
+It is skipped in normal CI unless `CODEX_HOOKKIT_RUN_CODEX_EXEC_E2E=1` is set.
 
 ## Python API
 

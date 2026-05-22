@@ -1,4 +1,4 @@
-.PHONY: build check check-generated ci fmt lint test
+.PHONY: build check check-generated ci codex-exec-e2e fmt lint test
 
 fmt:
 	uv run ruff check --fix .
@@ -13,6 +13,9 @@ check-generated:
 
 test:
 	uv run pytest -q
+
+codex-exec-e2e:
+	CODEX_HOOKKIT_RUN_CODEX_EXEC_E2E=1 uv run pytest -q tests/test_codex_exec_e2e.py
 
 build:
 	rm -rf dist

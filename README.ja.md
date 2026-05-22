@@ -61,6 +61,20 @@ codex-hookkit trust-hooks --hooks-path .codex/hooks.json
 
 このコマンドは、全 command hook について `[hooks.state."..."]` の
 `trusted_hash` を upsert します。書き込み前に確認したい場合は `--dry-run` を使います。
+この repository には Codex 用の project-local `config.toml` も置いています。
+ただし hook trust state は絶対パスを含む machine-local な状態なので commit せず、
+上の `trust-hooks` で各環境の `~/.codex/config.toml` に書き込みます。
+
+実際の Codex CLI と hook trust を使った smoke test は次で実行できます。
+
+```sh
+make codex-exec-e2e
+```
+
+このテストは一時 `CODEX_HOME` に既存の Codex auth をコピーし、hook trust を書き込んだうえで、
+`codex exec` が通常コマンドを実行できることと、secret-file guard が sensitive file-read
+command を block することを確認します。通常の CI では skip され、
+`CODEX_HOOKKIT_RUN_CODEX_EXEC_E2E=1` がある場合だけ実行されます。
 
 ## 開発
 
