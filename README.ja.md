@@ -76,6 +76,18 @@ make codex-exec-e2e
 command を block することを確認します。通常の CI では skip され、
 `CODEX_HOOKKIT_RUN_CODEX_EXEC_E2E=1` がある場合だけ実行されます。
 
+同じ経路を debug 用に見る場合は次を使います。
+
+```sh
+make codex-exec-debug
+```
+
+注意点として、現在の Codex CLI の JSON mode では assistant text は top-level の
+`agent_message` ではなく、`item.completed` event の `item.type == "agent_message"`
+として出ます。また hook deny は `Command blocked by PreToolUse hook: ...` のように
+stderr 側へ出ることがあります。stdout だけを見ると、実際には hook が発火しているのに
+「deny が発火していない」ように見えるため、JSON event と hook 関連 stderr の両方を確認します。
+
 ## 開発
 
 ```sh

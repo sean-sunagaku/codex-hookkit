@@ -149,6 +149,18 @@ writes hook trust entries, then verifies `codex exec` can run an ordinary
 command and that the secret-file guard blocks a sensitive file-read command.
 It is skipped in normal CI unless `CODEX_HOOKKIT_RUN_CODEX_EXEC_E2E=1` is set.
 
+For debugging the same path with compact `codex exec --json` events:
+
+```sh
+make codex-exec-debug
+```
+
+One important detail: Codex CLI JSON mode currently reports assistant text as
+`item.completed` events whose `item.type` is `agent_message`. Hook denials may
+also be surfaced on stderr as lines such as `Command blocked by PreToolUse
+hook: ...`. A stdout-only check can therefore make a working hook look like it
+did not fire; inspect both the JSON events and hook-related stderr lines.
+
 ## Python API
 
 ```python
