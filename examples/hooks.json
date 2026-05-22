@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python examples/python_hooks/structured_output/pre_tool_use.py",
+            "command": "uv run python -m codex_hookkit.cli guard --schema pre-tool-use --json-output",
             "timeout": 10
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python examples/python_hooks/structured_output/permission_request.py",
+            "command": "uv run python -m codex_hookkit.cli guard --schema permission-request --json-output",
             "timeout": 10
           }
         ]
