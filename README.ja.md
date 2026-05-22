@@ -48,6 +48,12 @@ examples/codex_review_hooks.json
 `structured_output` の Python example は、基本的にすべて
 `XxxInput.from_stdin()` で読み、`XxxOutput` で返す形です。
 
+このライブラリの使い方を Codex に渡すための Skill は次にあります。
+
+```text
+skills/codex-hookkit/SKILL.md
+```
+
 ## Hook Config
 
 実際に hook を設定するサンプルは `examples/hooks.json` にあります。

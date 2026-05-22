@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Hookkit"
+  short_description: "Build and verify Python Codex hooks with codex-hookkit."
+  default_prompt: "Use codex-hookkit to build or debug a Python Codex hook."

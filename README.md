@@ -84,6 +84,12 @@ examples/hooks.json
 examples/codex_review_hooks.json
 ```
 
+A Codex Skill for using this library lives at:
+
+```text
+skills/codex-hookkit/SKILL.md
+```
+
 The structured examples use generated Pydantic classes such as
 `PreToolUseInput`, `PreToolUseOutput`, `PermissionRequestInput`,
 `PermissionRequestOutput`, and `SessionStartOutput`. Regenerate those classes

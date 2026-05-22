@@ -47,6 +47,7 @@ include = [
   "/docs",
   "/examples",
   "/pyproject.toml",
+  "/skills",
   "/src",
   "/tests",
   "/third_party/openai-codex-hook-schemas",
