@@ -20,7 +20,8 @@ src/codex_hookkit/
     upstream.py     # schema snapshot downloader
     scaffold.py     # hook skeleton / project skeleton 生成
   cli/
-    __init__.py     # sample runner と補助 CLI
+    __init__.py     # CLI package re-export
+    main.py         # sample runner と補助 CLI
     __main__.py     # python -m codex_hookkit.cli
 ```
 

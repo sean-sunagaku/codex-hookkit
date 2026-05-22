@@ -26,7 +26,7 @@ classifiers = [
 ]
 
 [project.scripts]
-codex-hookkit = "codex_hookkit.cli:main"
+codex-hookkit = "codex_hookkit.cli.main:main"
 
 [project.urls]
 Repository = "https://github.com/sean-sunagaku/codex-hookkit"

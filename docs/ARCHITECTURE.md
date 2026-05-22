@@ -28,7 +28,8 @@ src/codex_hookkit/
     upstream.py     # importable schema snapshot downloader
     scaffold.py     # hook skeleton and project skeleton generation
   cli/
-    __init__.py     # sample runner and project setup helpers
+    __init__.py     # public CLI package re-export
+    main.py         # sample runner and project setup helpers
     __main__.py     # python -m codex_hookkit.cli
 ```
 
