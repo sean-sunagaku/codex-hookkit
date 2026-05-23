@@ -52,7 +52,7 @@ model が Codex の contract に合っているか確認する中核です。
 hook 利用者は基本的に package root から import します。
 
 ```python
-from codex_hookkit import PreToolUseInput, PreToolUseOutput
+from codex_hookkit import PreToolUseInput, deny
 ```
 
 public API は次に絞ります。

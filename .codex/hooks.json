@@ -46,7 +46,7 @@
           {
             "type": "command",
             "command": "sh -c 'cd \"$(git rev-parse --show-toplevel)\" && exec uv run python examples/python_hooks/codex_review/run_review.py'",
-            "timeout": 300,
+            "timeout": 900,
             "statusMessage": "Running Codex review for changed code"
           }
         ]

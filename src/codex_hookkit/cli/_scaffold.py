@@ -202,7 +202,7 @@ def project_skeleton(
 
     root = Path(output_dir)
     files = {
-        root / "hooks" / "secret_guard.py": structured_secret_guard_hook(),
+        root / "hooks" / "secret_guard.py": secret_guard_hook(),
         root / ".codex" / "hooks.json": project_hooks_json(),
         root / "config.toml": project_config_toml(),
     }

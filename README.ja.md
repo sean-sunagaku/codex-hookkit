@@ -7,7 +7,8 @@
 ## 基本方針
 
 - Hook の入力は `PreToolUseInput` などの生成 Input model で受ける
-- Hook の構造化出力は `PreToolUseOutput` などの生成 Output model で返す
+- `PreToolUse` の deny は実 CLI 互換性のため `exit 2 + stderr` を基本にする
+- 構造化出力が必要な hook では `XxxOutput` などの生成 Output model を使う
 - CLI は sample runner / scaffold / schema helper に留める
 - `examples/` は Python hook 実例と実際に使える hook config サンプルに絞る
 
@@ -20,7 +21,7 @@ uv add codex-hookkit
 ## 最小 Hook
 
 ```python
-from codex_hookkit import PreToolUseInput, PreToolUseOutput
+from codex_hookkit import PreToolUseInput, deny
 
 
 def main() -> int:
@@ -28,9 +29,7 @@ def main() -> int:
     reason = blocked_reason(payload)
 
     if reason:
-        PreToolUseOutput.deny(reason).write()
-    else:
-        PreToolUseOutput.allow().write()
+        return deny.stderr_exit(reason)
 
     return 0
 
@@ -58,8 +57,12 @@ examples/hooks.json
 examples/codex_review_hooks.json
 ```
 
-`structured_output` の Python example は、基本的にすべて
-`XxxInput.from_stdin()` で読み、`XxxOutput` で返す形です。
+`structured_output` の Python example は `XxxInput.from_stdin()` で読み、
+schema-valid な `XxxOutput` を返す形です。`PreToolUseOutput.deny()` は
+schema-valid な top-level `decision="block"` / `reason` 形を返します。
+ただし `codex exec` v0.133.0 の実 `PreToolUse` command hook では
+structured stdout が `PreToolUse Failed` 扱いになるため、実運用の
+`PreToolUse` guard は `exit_status` 版を基本にしてください。
 
 このライブラリの使い方を Codex に渡すための Skill は次にあります。
 
@@ -71,6 +74,10 @@ skills/codex-hookkit/SKILL.md
 
 実際に hook を設定するサンプルは `examples/hooks.json` にあります。
 レビュー hook だけを使いたい場合は `examples/codex_review_hooks.json` を見てください。
+レビュー hook は `PostToolUse` で marker を置き、`Stop` で変更内容に応じた
+非破壊の fmt/lint/test check を走らせ、その結果を含めて 1 回だけ nested
+`codex exec` review を実行します。check を止めたい場合は
+`run_review.py --skip-checks` を使えます。
 
 Codex の hook trust state を `~/.codex/config.toml` に書き込む場合は、
 repo の tool を使います。

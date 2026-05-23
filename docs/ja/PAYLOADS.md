@@ -16,8 +16,13 @@ payload = PreToolUseInput.from_stdin()
 ```python
 from codex_hookkit import PreToolUseOutput
 
-PreToolUseOutput.allow().write()
+PreToolUseOutput.deny("Blocked direct secret file access.").write()
 ```
+
+`PreToolUseOutput.deny()` は schema-valid な top-level `decision="block"` /
+`reason` 形を返します。ただし `codex exec` v0.133.0 の実 hook では
+structured stdout が `PreToolUse Failed` 扱いになるため、`PreToolUse` で
+block する実運用 hook は次の `exit 2 + stderr` を優先してください。
 
 block する場合は Codex 互換の `exit 2 + stderr` も使えます。
 
@@ -27,8 +32,8 @@ from codex_hookkit import deny
 return deny.stderr_exit("Blocked direct secret file access.")
 ```
 
-ただし、基本の Python examples は `InputModel` で受け、`OutputModel` で返す
-構造化パターンを中心にしています。
+基本の Python examples は `exit_status` と `structured_output` の両方を置いています。
+実 CLI smoke では `PreToolUse` は `exit_status` 版を使います。
 
 ## Examples
 

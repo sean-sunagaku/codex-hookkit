@@ -19,7 +19,7 @@
           {
             "type": "command",
             "command": "uv run python examples/python_hooks/codex_review/run_review.py",
-            "timeout": 300
+            "timeout": 900
           }
         ]
       }

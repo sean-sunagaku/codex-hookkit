@@ -43,7 +43,7 @@ examples/python_hooks/structured_output/*.py
 
 Use `exit_status` when a hook only needs `exit 0` or `exit 2 + stderr`.
 Use `structured_output` when a hook should write a schema-valid JSON response
-to stdout.
+to stdout and the Codex runtime accepts structured output for that hook event.
 
 The structured-output examples use Pydantic models generated from the vendored
 Codex input and output schemas:
@@ -52,8 +52,13 @@ Codex input and output schemas:
 from codex_hookkit import PreToolUseInput, PreToolUseOutput
 
 payload = PreToolUseInput.from_stdin()
-PreToolUseOutput.allow().write()
+PreToolUseOutput.deny("Blocked direct secret file access.").write()
 ```
+
+For `PreToolUse`, `PreToolUseOutput.deny()` emits the top-level
+`decision="block"` / `reason` shape. For live guard hooks, the `exit_status`
+example remains the default because `codex exec` v0.133.0 still reports
+structured `PreToolUse` stdout as a hook failure.
 
 Regenerate them with:
 
@@ -140,6 +145,9 @@ output = deny.pre_tool_use_json("Blocked direct secret file access: .env.")
 ```
 
 The builders validate their result before returning it.
+
+For live `PreToolUse` guard hooks, `deny.stderr_exit(...)` remains the default
+and most compatible blocking path.
 
 Python examples live under `examples/python_hooks/`. Hook configuration samples
 live in `examples/hooks.json` and `examples/codex_review_hooks.json`.

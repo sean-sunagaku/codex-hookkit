@@ -135,24 +135,20 @@ class PreToolUseOutput(StructuredOutput):
     system_message: str | None = Field(default=None, alias='systemMessage')
 
     @classmethod
+    def approve(cls, system_message: str | None = None) -> 'PreToolUseOutput':
+        return cls(decision="approve", system_message=system_message)
+
+    @classmethod
+    def block(cls, reason: str) -> 'PreToolUseOutput':
+        return cls(decision="block", reason=reason)
+
+    @classmethod
     def allow(cls, additional_context: str | None = None) -> 'PreToolUseOutput':
-        return cls(
-            hook_specific_output=PreToolUseHookSpecificOutput(
-                hook_event_name="PreToolUse",
-                permission_decision="allow",
-                additional_context=additional_context,
-            )
-        )
+        return cls.approve(system_message=additional_context)
 
     @classmethod
     def deny(cls, reason: str) -> 'PreToolUseOutput':
-        return cls(
-            hook_specific_output=PreToolUseHookSpecificOutput(
-                hook_event_name="PreToolUse",
-                permission_decision="deny",
-                permission_decision_reason=reason,
-            )
-        )
+        return cls.block(reason)
 
 class SessionStartHookSpecificOutput(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
