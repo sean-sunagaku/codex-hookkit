@@ -18,6 +18,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--state-dir", default=".codex-hookkit")
     parser.add_argument("--codex-bin", default="codex")
     parser.add_argument("--timeout", type=int, default=240)
+    parser.add_argument(
+        "--skip-checks",
+        action="store_true",
+        help="skip local fmt/lint/test checks before launching the nested review",
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
 
@@ -32,6 +37,7 @@ def main(argv: list[str] | None = None) -> int:
         codex_bin=args.codex_bin,
         timeout=args.timeout,
         dry_run=args.dry_run,
+        run_local_checks=not args.skip_checks,
     )
 
 

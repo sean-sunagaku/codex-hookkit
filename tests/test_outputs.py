@@ -98,3 +98,17 @@ def test_output_helpers_match_upstream_schemas() -> None:
 def test_output_models_forbid_extra_fields() -> None:
     with pytest.raises(ValidationError):
         PreToolUseOutput(unknown_field=True)
+
+
+def test_pre_tool_use_output_helpers_prefer_top_level_decision_shape() -> None:
+    assert PreToolUseOutput.allow().to_dict() == {
+        "continue": True,
+        "decision": "approve",
+        "suppressOutput": False,
+    }
+    assert PreToolUseOutput.deny("blocked").to_dict() == {
+        "continue": True,
+        "decision": "block",
+        "reason": "blocked",
+        "suppressOutput": False,
+    }

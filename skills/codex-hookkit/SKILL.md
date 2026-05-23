@@ -11,8 +11,8 @@ Use this skill when working on Python hooks built with `codex-hookkit`.
 
 1. Treat the vendored upstream Codex schemas as the contract.
 2. Read hook input with generated models such as `PreToolUseInput.from_stdin()`.
-3. Return structured output with generated models such as `PreToolUseOutput.deny(...).write()` when the hook supports JSON output.
-4. Use `exit 2` plus stderr only for the simple deny path or examples that intentionally demonstrate exit-status mode.
+3. For live `PreToolUse` guard denials, use `exit 2` plus stderr via `deny.stderr_exit(...)` by default.
+4. Return structured output with generated models when schema-valid JSON output is needed; `PreToolUseOutput.deny(...)` emits top-level `decision="block"` / `reason`, but live `PreToolUse` hooks should still use `deny.stderr_exit(...)`.
 5. Keep policy outside the stable package API; add product rules in the consuming hook file.
 6. Verify with unit tests first, then run the real `codex exec` smoke path when auth is available.
 
@@ -21,7 +21,7 @@ Use this skill when working on Python hooks built with `codex-hookkit`.
 Prefer import-first hook files over putting real behavior in the generic CLI runner:
 
 ```python
-from codex_hookkit import PreToolUseInput, PreToolUseOutput
+from codex_hookkit import PreToolUseInput, deny
 
 
 def main() -> int:
@@ -29,9 +29,7 @@ def main() -> int:
     reason = blocked_reason(payload)
 
     if reason:
-        PreToolUseOutput.deny(reason).write()
-    else:
-        PreToolUseOutput.allow().write()
+        return deny.stderr_exit(reason)
 
     return 0
 
@@ -71,6 +69,7 @@ make check
 - Update upstream schema snapshots only through `tools/update_codex_hook_schemas.py`.
 - Do not add runtime network access to hook evaluation.
 - Preserve the Codex review hook recursion guard in the example: `CODEX_HOOKKIT_REVIEW_ACTIVE=1`.
+- Keep Codex review hook local checks in the Stop phase and non-mutating; use formatter check modes instead of write modes.
 - Preserve the repository trust helper: `uv run python tools/trust_codex_hooks.py --hooks-path .codex/hooks.json`.
 
 ## References

@@ -96,8 +96,10 @@ When changing sample policy:
 When changing Codex review examples:
 
 - edit `examples/python_hooks/codex_review/review_helpers.py` for marker,
-  changed-file, or nested Codex behavior
+  changed-file, local-check, or nested Codex behavior
 - keep `PostToolUse` cheap; it should mark pending review, not run review
+- keep Stop-phase local checks non-mutating; prefer check modes such as
+  formatter `--check`
 - keep nested review protected by `CODEX_HOOKKIT_REVIEW_ACTIVE`
 - add tests in `tests/test_review.py`
 - update `.codex/hooks.json` and `examples/codex_review_hooks.json` together

@@ -66,7 +66,7 @@ layer, so it stays in `core`.
 The intended import path is:
 
 ```python
-from codex_hookkit import PreToolUseInput, PreToolUseOutput
+from codex_hookkit import PreToolUseInput, deny
 ```
 
 Stable concepts:
@@ -79,6 +79,11 @@ Stable concepts:
   `PermissionRequestOutput`.
 - `Decision`, `allow`, and `deny`: small compatibility helpers.
 - `load_schema`, `schema_path`, `available_schemas`, and `validate`.
+
+For live `PreToolUse` guard denials, prefer `deny.stderr_exit(...)`.
+`PreToolUseOutput.deny(...)` builds the schema-valid top-level
+`decision="block"` / `reason` structured shape, but `codex exec` v0.133.0
+still fails live `PreToolUse` hooks that write structured stdout.
 
 Not public package API:
 
@@ -149,6 +154,8 @@ The repository includes `.codex/hooks.json` for dogfooding:
 
 The review example is deliberately outside package API. It shows one way to
 wire a two-phase review hook, but consuming projects should copy and adapt it.
+The Stop phase may run inferred non-mutating local verification commands before
+launching the nested review, and includes those results in the review prompt.
 
 ## Boundaries
 

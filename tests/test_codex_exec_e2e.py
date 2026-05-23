@@ -73,6 +73,8 @@ def test_codex_exec_runs_pwd_with_project_hooks(codex_home: Path) -> None:
 
     assert result.returncode == 0, result.stderr
     assert str(REPO_ROOT) in result.stdout
+    combined_output = result.stdout + result.stderr
+    assert "PreToolUse Failed" not in combined_output
     assert any(
         event.get("type") == "item.completed"
         and isinstance(event.get("item"), dict)
@@ -85,13 +87,30 @@ def test_codex_exec_secret_command_is_blocked_by_hook(codex_home: Path) -> None:
     secret_path = "." + "env"
     result = run_codex_exec(
         codex_home,
-        f"Run exactly this shell command: cat {secret_path}. Do not modify files.",
+        (
+            f"Use the shell tool exactly once to run this command: cat {secret_path}. "
+            "Do not modify files. Do not answer without attempting the command."
+        ),
     )
 
     assert result.returncode == 0, result.stderr
     combined_output = result.stdout + result.stderr
     assert "Blocked direct secret file access" in combined_output
     assert "Command blocked by PreToolUse hook" in combined_output
+    assert "PreToolUse Failed" not in combined_output
+
+
+def test_pre_tool_use_json_output_uses_top_level_decision_shape() -> None:
+    allow_output = run_guard_json_output("pwd")
+    assert allow_output["decision"] == "approve"
+    assert "hookSpecificOutput" not in allow_output
+    assert "reason" not in allow_output
+
+    secret_path = "." + "env"
+    deny_output = run_guard_json_output(f"cat {secret_path}")
+    assert deny_output["decision"] == "block"
+    assert "Blocked direct secret file access" in deny_output["reason"]
+    assert "hookSpecificOutput" not in deny_output
 
 
 def run_codex_exec(codex_home: Path, prompt: str) -> subprocess.CompletedProcess[str]:
@@ -118,6 +137,42 @@ def run_codex_exec(codex_home: Path, prompt: str) -> subprocess.CompletedProcess
         env=env,
         timeout=CODEX_EXEC_TIMEOUT_SECONDS,
     )
+
+
+def run_guard_json_output(command: str) -> dict[str, object]:
+    payload = {
+        "cwd": str(REPO_ROOT),
+        "hook_event_name": "PreToolUse",
+        "model": "gpt-5",
+        "permission_mode": "default",
+        "session_id": "session",
+        "tool_input": {"cmd": command},
+        "tool_name": "shell",
+        "tool_use_id": "tool-use",
+        "transcript_path": None,
+        "turn_id": "turn",
+    }
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "codex_hookkit.cli",
+            "guard",
+            "--schema",
+            "pre-tool-use",
+            "--json-output",
+        ],
+        cwd=REPO_ROOT,
+        input=json.dumps(payload),
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    output = json.loads(result.stdout)
+    assert isinstance(output, dict)
+    return output
 
 
 def json_events(output: str) -> list[dict[str, object]]:

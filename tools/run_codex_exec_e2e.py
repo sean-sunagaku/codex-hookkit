@@ -84,11 +84,14 @@ def main(argv: list[str] | None = None) -> int:
             for result in results:
                 print_debug_dump(result)
 
+        json_output_shape = pre_tool_use_json_output_shape(repo)
         summary = {
             "codex_home": str(home),
             "kept_codex_home": args.keep_home,
             "pwd_ok": pwd_ok(results[0], repo),
             "secret_block_ok": secret_block_ok(results[1]),
+            "pre_tool_use_json_output_shape_ok": json_output_shape["ok"],
+            "pre_tool_use_json_outputs": json_output_shape["outputs"],
             "results": [
                 {
                     "name": result.name,
@@ -104,6 +107,8 @@ def main(argv: list[str] | None = None) -> int:
         if not summary["pwd_ok"]:
             return 1
         if not summary["secret_block_ok"]:
+            return 1
+        if not summary["pre_tool_use_json_output_shape_ok"]:
             return 1
         return 0
     finally:
@@ -211,7 +216,67 @@ def secret_block_ok(result: SmokeResult) -> bool:
 
 def secret_prompt() -> str:
     secret_path = "." + "env"
-    return f"Run exactly this shell command: cat {secret_path}. Do not modify files."
+    return (
+        f"Use the shell tool exactly once to run this command: cat {secret_path}. "
+        "Do not modify files. Do not answer without attempting the command."
+    )
+
+
+def pre_tool_use_json_output_shape(repo: Path) -> dict[str, object]:
+    outputs: list[dict[str, object]] = []
+    try:
+        for command in ("pwd", "cat " + "." + "env"):
+            output = run_guard_json_output(repo, command)
+            outputs.append(output)
+        ok = (
+            outputs[0].get("decision") == "approve"
+            and "reason" not in outputs[0]
+            and "hookSpecificOutput" not in outputs[0]
+            and outputs[1].get("decision") == "block"
+            and "Blocked direct secret file access" in str(outputs[1].get("reason", ""))
+            and "hookSpecificOutput" not in outputs[1]
+        )
+    except Exception as exc:  # pragma: no cover - debug helper path
+        return {"ok": False, "outputs": [{"error": str(exc)}]}
+    return {"ok": ok, "outputs": outputs}
+
+
+def run_guard_json_output(repo: Path, command: str) -> dict[str, object]:
+    payload = {
+        "cwd": str(repo),
+        "hook_event_name": "PreToolUse",
+        "model": "gpt-5",
+        "permission_mode": "default",
+        "session_id": "session",
+        "tool_input": {"cmd": command},
+        "tool_name": "shell",
+        "tool_use_id": "tool-use",
+        "transcript_path": None,
+        "turn_id": "turn",
+    }
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "codex_hookkit.cli",
+            "guard",
+            "--schema",
+            "pre-tool-use",
+            "--json-output",
+        ],
+        cwd=repo,
+        input=json.dumps(payload),
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=30,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr)
+    output = json.loads(result.stdout)
+    if not isinstance(output, dict):
+        raise TypeError("guard --json-output must emit a JSON object")
+    return output
 
 
 def json_events(output: str) -> list[dict[str, object]]:

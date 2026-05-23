@@ -119,18 +119,14 @@ def test_examples_hooks_json_commands_run(tmp_path: Path) -> None:
         command_for(config, "PreToolUse"), payload("PreToolUse", cwd=tmp_path)
     )
     assert pre_allow.returncode == 0, pre_allow.stderr
-    pre_allow_json = json.loads(pre_allow.stdout)
-    validate(pre_allow_json, "pre-tool-use", direction="output")
-    assert pre_allow_json["hookSpecificOutput"]["permissionDecision"] == "allow"
+    assert pre_allow.stdout == ""
 
     pre_deny = run_configured_hook(
         command_for(config, "PreToolUse"),
         payload("PreToolUse", cwd=tmp_path, command=secret_command()),
     )
-    assert pre_deny.returncode == 0, pre_deny.stderr
-    pre_deny_json = json.loads(pre_deny.stdout)
-    validate(pre_deny_json, "pre-tool-use", direction="output")
-    assert pre_deny_json["hookSpecificOutput"]["permissionDecision"] == "deny"
+    assert pre_deny.returncode == 2
+    assert "Blocked direct secret file access" in pre_deny.stderr
 
     permission = run_configured_hook(
         command_for(config, "PermissionRequest"),

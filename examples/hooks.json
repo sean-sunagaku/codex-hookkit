@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run python -m codex_hookkit.cli guard --schema pre-tool-use --json-output",
+            "command": "uv run python -m codex_hookkit.cli guard --schema pre-tool-use",
             "timeout": 10
           }
         ]
@@ -43,7 +43,7 @@
           {
             "type": "command",
             "command": "uv run python examples/python_hooks/codex_review/run_review.py",
-            "timeout": 300
+            "timeout": 900
           }
         ]
       }

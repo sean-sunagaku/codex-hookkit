@@ -34,7 +34,7 @@ def test_project_hooks_hashes_match_codex_current_hashes() -> None:
         "sha256:cbe36f75d48efc5d8ff1bb7be3ac50d66292656fb4dff7410af6c9d63a3f239c"
     )
     assert entries["Stop"].current_hash == (
-        "sha256:b2e45579fa9a8c05b8ed219b9c875fe6fc4d45a534b44421e8e7e7bd12c5398c"
+        "sha256:6019e9e97d663d871d877cd14647f6a642add3698fc02b7618b1d654e10688d8"
     )
 
 

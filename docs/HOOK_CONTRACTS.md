@@ -104,21 +104,23 @@ This mode is simple and works well for local guard hooks.
 
 ## Structured JSON Output
 
-Some hook integrations prefer structured output. Use `--json-output`:
+Some hook integrations prefer structured output. Use `--json-output` where the
+runtime accepts schema-valid hook stdout:
 
 ```sh
 codex-hookkit guard --schema pre-tool-use --json-output
 ```
 
+For live `PreToolUse` guard hooks, prefer `exit 2 + stderr`. As observed with
+`codex exec` v0.133.0, structured stdout for `PreToolUse` is schema-valid but
+still reported as `PreToolUse Failed` by the CLI runtime.
+
 For a denied `PreToolUse`, the package emits:
 
 ```json
 {
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "permissionDecision": "deny",
-    "permissionDecisionReason": "Blocked direct secret file access: .env."
-  }
+  "decision": "block",
+  "reason": "Blocked direct secret file access."
 }
 ```
 
@@ -128,12 +130,10 @@ vendored output schema.
 All JSON builders in `decisions.py` validate their output before returning it.
 
 The fixed part of a structured hook response is the upstream output schema.
-For `PreToolUse`, that means the response must use `hookSpecificOutput` with:
+For `PreToolUse`, `codex-hookkit` defaults to the top-level fields:
 
-- `hookEventName`
-- `permissionDecision`
-- optional `permissionDecisionReason`
-- optional `additionalContext`
+- `decision`: `approve` or `block`
+- `reason`: required by convention when `decision` is `block`
 
 For `PermissionRequest`, the response must use the `decision` shape defined in
 `permission-request.command.output.schema.json`.

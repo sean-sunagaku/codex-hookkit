@@ -54,7 +54,7 @@ Common output models:
 - `SubagentStopOutput`
 - `UserPromptSubmitOutput`
 
-The generated models validate against vendored upstream output schemas. Do not hand-edit generated files; update the generator or the schema snapshot.
+The generated models validate against vendored upstream output schemas. Do not hand-edit generated files; update the generator or the schema snapshot. `PreToolUseOutput.deny(...)` emits top-level `decision="block"` / `reason`. For live `PreToolUse` guard denials, use `deny.stderr_exit(...)`; `codex exec` v0.133.0 still reports structured `PreToolUse` stdout as a hook failure.
 
 ## CLI Roles
 
@@ -150,7 +150,7 @@ This means the hook fired correctly even if stdout only shows the assistant summ
 The review hook flow is two-step:
 
 - `examples/python_hooks/codex_review/request_review.py`: `PostToolUse` hook that writes a pending marker when code changes
-- `examples/python_hooks/codex_review/run_review.py`: `Stop` hook that consumes the marker and runs one nested `codex exec` review
+- `examples/python_hooks/codex_review/run_review.py`: `Stop` hook that consumes the marker, runs inferred non-mutating local checks, and runs one nested `codex exec` review
 
 Always keep this recursion guard in nested review runs:
 

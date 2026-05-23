@@ -21,3 +21,8 @@ Hook contract は上流 `openai/codex` の generated schema を正とします�
 - block する条件
 - `exit 2 + stderr` を使うか、structured output を使うか
 - deny message
+
+実運用の `PreToolUse` guard は `exit 2 + stderr` を優先します。JSON output が
+必要な場合、`PreToolUseOutput.deny()` は schema-valid な top-level
+`decision="block"` / `reason` 形を返します。ただし `codex exec` v0.133.0 では
+実 `PreToolUse` hook の structured stdout は `PreToolUse Failed` 扱いになります。

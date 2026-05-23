@@ -46,7 +46,7 @@ For real hook implementations, prefer importing the library from your own
 Python hook file:
 
 ```python
-from codex_hookkit import PreToolUseInput, PreToolUseOutput
+from codex_hookkit import PreToolUseInput, deny
 
 
 def main() -> int:
@@ -54,9 +54,7 @@ def main() -> int:
     reason = blocked_reason(payload)
 
     if reason:
-        PreToolUseOutput.deny(reason).write()
-    else:
-        PreToolUseOutput.allow().write()
+        return deny.stderr_exit(reason)
 
     return 0
 
@@ -80,12 +78,6 @@ Initialize a minimal hook project skeleton with:
 codex-hookkit init --output-dir .
 ```
 
-Generate a Codex review hook config with:
-
-```sh
-codex-hookkit scaffold --kind codex-review-hooks --output hooks.json
-```
-
 The repository also includes Python hook examples and real hook config samples:
 
 ```text
@@ -104,8 +96,9 @@ skills/codex-hookkit/SKILL.md
 
 The structured examples use generated Pydantic classes such as
 `PreToolUseInput`, `PreToolUseOutput`, `PermissionRequestInput`,
-`PermissionRequestOutput`, and `SessionStartOutput`. Regenerate those classes
-from the vendored Codex schemas with:
+`PermissionRequestOutput`, and `SessionStartOutput`. `PreToolUseOutput.deny()`
+uses the top-level `decision="block"` / `reason` shape. Regenerate those
+classes from the vendored Codex schemas with:
 
 ```sh
 uv run python tools/generate_pydantic_models.py
@@ -124,11 +117,16 @@ exits:
 codex-hookkit guard --schema pre-tool-use
 ```
 
-For structured Codex hook output:
+For structured Codex hook output on integrations that support it:
 
 ```sh
 codex-hookkit guard --schema pre-tool-use --json-output
 ```
+
+For `PreToolUse`, the JSON helper emits the schema-valid top-level `decision`
+shape. As observed with `codex exec` v0.133.0, live `PreToolUse` command hooks
+still treat that structured stdout as `PreToolUse Failed`, so the default guard
+uses `exit 2 + stderr`.
 
 Update the vendored schema snapshot with the repository tool:
 
@@ -180,6 +178,9 @@ The stable package API is intentionally narrow:
 - schema helpers such as `load_schema` and `validate`
 - small allow / deny decision helpers
 
+`PreToolUseOutput.deny(...)` builds top-level `decision="block"` output.
+The verified live Codex CLI deny path remains `deny.stderr_exit(...)`.
+
 Policy, review orchestration, trust-state writes, schema downloading, and
 scaffolding are example/tooling concerns, not public Python APIs.
 
@@ -212,10 +213,16 @@ code changes:
 - `examples/python_hooks/codex_review/request_review.py`: a `PostToolUse` hook
   that marks a pending review when the repository has changed code files
 - `examples/python_hooks/codex_review/run_review.py`: a `Stop` hook that
-  consumes the marker and runs one nested `codex exec` review
+  consumes the marker, runs inferred local checks, and runs one nested
+  `codex exec` review
 
 The nested review inherits `CODEX_HOOKKIT_REVIEW_ACTIVE=1`, so hook commands
 skip themselves during the review and avoid recursive Codex runs.
+Before launching Codex, the Stop hook selects non-mutating verification
+commands for the changed project, such as `uv run ruff format --check .`,
+`uv run ruff check .`, and `uv run pytest -q` for Python projects. The check
+results are included in the review prompt. Use `--skip-checks` if a project
+wants review-only behavior.
 
 ```json
 {
@@ -239,7 +246,7 @@ skip themselves during the review and avoid recursive Codex runs.
           {
             "type": "command",
             "command": "uv run python examples/python_hooks/codex_review/run_review.py",
-            "timeout": 300
+            "timeout": 900
           }
         ]
       }

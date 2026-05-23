@@ -52,7 +52,8 @@ def test_guard_json_output_validates() -> None:
     )
     assert result.returncode == 0
     output = json.loads(result.stdout)
-    assert output["hookSpecificOutput"]["permissionDecision"] == "deny"
+    assert output["decision"] == "block"
+    assert "Blocked direct secret file access" in output["reason"]
 
 
 def test_scaffold_outputs_import_first_hook() -> None:
@@ -106,6 +107,8 @@ def test_init_writes_project_skeleton(tmp_path: Path) -> None:
     assert config.exists()
 
     assert "PreToolUseInput.from_stdin()" in hook_file.read_text(encoding="utf-8")
+    assert "deny.stderr_exit(reason)" in hook_file.read_text(encoding="utf-8")
+    assert "PreToolUseOutput" not in hook_file.read_text(encoding="utf-8")
     hook_config = json.loads(hooks_json.read_text(encoding="utf-8"))
     assert "PreToolUse" in hook_config["hooks"]
     assert "uv run python hooks/secret_guard.py" in hooks_json.read_text(encoding="utf-8")
